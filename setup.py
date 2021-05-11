@@ -13,7 +13,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/rtts/djhtml",
-    packages=setuptools.find_packages(),
+    packages=["djhtml"],
     entry_points={
         "console_scripts": ["djhtml=djhtml.__main__:main"],
     },
