@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="djhtml",
-    version="0.0.1",
+    version="0.0.2",
     author="Jaap Joris Vens",
     author_email="jj@rtts.eu",
     description="Django template indenter",
@@ -17,6 +17,7 @@ setuptools.setup(
     entry_points={
         "console_scripts": ["djhtml=djhtml.__main__:main"],
     },
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
