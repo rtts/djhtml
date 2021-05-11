@@ -1,11 +1,31 @@
 DJHTML
 ======
 
-**Finally! An elegant Django template indenter without any dependencies!**
+**A pure-Python Django template indenter without any dependencies.**
 
 
 Installation
 ------------
+
+You can install DJHTML with the following command:
+
+    $ pip install djhtml
+
+
+Usage
+-----
+
+Next, you can use it like so:
+
+    $ djhtml my-django-template.html
+
+
+Pre-commit configuration
+------------------------
+
+Even better, you can use DJHTML as a
+[pre-commit](https://pre-commit.com/) hook to automatically indent
+your Django templates upon each commit.
 
 First, add the following to your `.pre-commit-config.yaml`:
 
@@ -15,7 +35,7 @@ First, add the following to your `.pre-commit-config.yaml`:
       hooks:
       - id: djhtml
 
-Then run the following command:
+Then, run the following command:
 
     $ pre-commit autoupdate
 
