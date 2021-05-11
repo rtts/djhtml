@@ -14,8 +14,8 @@ class TestSuite(unittest.TestCase):
 
         """
         for filename in os.listdir(self.DIR):
-            with self.subTest(filename):
-                if filename.endswith(".in"):
+            if filename.endswith(".in"):
+                with self.subTest(filename):
                     basename, _ = os.path.splitext(filename)
                     with open(os.path.join(self.DIR, filename), "r") as f:
                         inputfile = f.readlines()
