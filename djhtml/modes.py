@@ -111,11 +111,22 @@ class HTML(Mode):
 
     TAG = re.compile(r"</?([a-z]+) ?[^>]*>?")
     IGNORE_TAGS = [
+        "area",
+        "base",
         "br",
+        "col",
+        "command",
+        "embed",
         "hr",
         "img",
+        "input",
+        "keygen",
         "link",
         "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
     ]
 
     def __init__(self, line):
