@@ -113,6 +113,7 @@ class HTML(Mode):
     IGNORE_TAGS = [
         "br",
         "hr",
+        "img",
         "link",
         "meta",
     ]

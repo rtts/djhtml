@@ -1,0 +1,11 @@
+<html>
+    <head>
+        <title>Plain</title>
+        <script src="test.js"></script>
+        <link rel="stylesheet" href="test.css">
+    </head>
+    <body>
+        <h1>Title</h1>
+        <img src="test.png">
+    </body>
+</html>
