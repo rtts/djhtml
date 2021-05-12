@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+line_length = 88
+profile = "black"
+
+[tool.black]
+line-length = 88
+experimental-string-processing = true
