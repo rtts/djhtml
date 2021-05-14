@@ -1,45 +1,26 @@
 import re
 
+from .lines import Line
+from .tokens import Token
+
 
 class Mode:
     """
-    Base class for different modes.
+    Base class for modes. Actual modes are implemented by the
+    following subclasses:
+
+    - DjHTML
+    - DjCSS
+    - DjJS
+    - Comment
+
+    This class contains their shared attributes and methods.
 
     """
 
-    def __init__(self, line):
-        self.line = line
+    TOKEN = re.compile(r"(?s)(\{%.*?%})")
 
-    def get_line(self, level):
-        if self.line:
-            return self.format_line(level + self.thislevel)
-        return ""
-
-    def format_line(self, level):
-        return "    " * level + self.line.lstrip()
-
-    @property
-    def thislevel(self):
-        return 0
-
-    @property
-    def nextlevel(self):
-        return 0
-
-    @property
-    def nextmode(self):
-        raise NotImplementedError()
-
-
-class Django(Mode):
-    """
-    Mode to parse Django template tags. Used by all other modes
-    (except comments).
-
-    """
-
-    TAG = re.compile(r"\{% +([a-z]+)")
-    OPENING_TAGS = [
+    DJANGO_OPENING_TAGS = [
         "if",
         "ifchanged",
         "for",
@@ -52,12 +33,12 @@ class Django(Mode):
         "blocktrans",
         "blocktranslate",
     ]
-    OPENING_AND_CLOSING_TAGS = [
+    DJANGO_OPENING_AND_CLOSING_TAGS = [
         "elif",
         "else",
         "empty",
     ]
-    CLOSING_TAGS = [
+    DJANGO_CLOSING_TAGS = [
         "endif",
         "endifchanged",
         "endfor",
@@ -71,46 +52,146 @@ class Django(Mode):
         "endblocktranslate",
     ]
 
-    def __init__(self, line):
-        self.line = line
-        self.parse_line()
+    def __init__(self, source):
+        self.source = source
 
-    def parse_line(self):
-        self.tags = []
-        for tag in self.TAG.finditer(self.line):
-            if tag.group(1) in self.OPENING_TAGS:
-                self.tags.append(1)
-            elif tag.group(1) in self.CLOSING_TAGS:
-                self.tags.append(-1)
+    def tokenize(self, line_nr):
+        """
+        Split the source text into tokens.
 
-    @property
-    def thislevel(self):
-        level = 0
-        if tag := self.TAG.match(self.line.lstrip()):
-            if tag.group(1) in self.OPENING_AND_CLOSING_TAGS:
-                level = -1
-            for tag in self.tags:
-                if tag < 0:
-                    level += tag
-                else:
-                    break
-        return level
+        """
+        # Remove leading and trailing whitespace
+        source = re.sub(r"[ \t]*\n[ \t]*", "\n", self.source.strip())
 
-    @property
-    def nextlevel(self):
-        return sum(self.tags)
+        tokens = []
+        for token in self.TOKEN.split(source):
+            if not token:
+                continue
+            tokens.extend(self.create_tokens(token, line_nr))
+            if "\n" in token:
+                line_nr += token.count("\n")
+
+        return tokens
+
+    def create_tokens(self, token, line_nr):
+        """
+        Given the raw token string, create one or more tokens.
+
+        """
+        token_type = self.get_token_type(token)
+        return [token_type(token, line_nr)]
+
+    def get_token_type(self, token):
+        """
+        Given the raw token string, determine what type it is.
+
+        """
+        if token.startswith("{%"):
+            if tag_name := re.search(r"(\w+)", token):
+                if tag_name.group(1) in self.DJANGO_OPENING_TAGS:
+                    return Token.BlockOpen
+                if tag_name.group(1) in self.DJANGO_OPENING_AND_CLOSING_TAGS:
+                    return Token.BlockOpenAndClose
+                if tag_name.group(1) in self.DJANGO_CLOSING_TAGS:
+                    return Token.BlockClose
+
+        return Token.Text
+
+    def indent(self, tabwidth, level=0, line_nr=1):
+        """
+        Indenting algorithm: loop over tokens and indent or dedent based
+        on their type.
+
+        """
+
+        tokens = self.tokenize(line_nr)
+        lines = []
+        thislevel = nextlevel = level
+        line = Line(tabwidth)
+        token = tokens.pop(0) if tokens else None
+
+        # The stack plays no role in indenting but is used to detect
+        # syntax errors
+        stack = []
+
+        while token:
+            if token.indent:
+                stack.append(token)
+                nextlevel += 1
+            if token.dedent:
+                try:
+                    match = stack.pop()
+                except IndexError:
+                    raise SyntaxError(
+                        f"cannot match “{token.text}” on line {token.line_nr}"
+                    )
+                if match.type != token.type:
+                    raise SyntaxError(
+                        f"“{match.text}” opened on line {match.line_nr} should be"
+                        f" closed before “{token.text}” on line {token.line_nr}"
+                    )
+                nextlevel -= 1
+                if not line.text:
+                    thislevel -= 1
+
+            if token.mode:
+                line.finish(thislevel)
+                lines.append(line)
+                line_nr += 1
+                lines.append(
+                    token.mode(token.text).indent(tabwidth, nextlevel, line_nr)
+                )
+                line = Line(tabwidth)
+                token = tokens.pop(0) if tokens else None
+                thislevel = nextlevel
+            elif "\n" in token.text:
+                if (nextlevel - thislevel) > 1:
+                    raise SyntaxError(
+                        f"too many opening statements on line {token.line_nr}"
+                    )
+                if (thislevel - nextlevel) > 1:
+                    raise SyntaxError(
+                        f"too many closing statements on line {token.line_nr}"
+                    )
+
+                # Split token in two, place second half on next line
+                trail, remainder = token.text.split("\n", maxsplit=1)
+                line.append(trail)
+                line.finish(thislevel)
+                lines.append(line)
+                line_nr += 1
+                token = Token.Text(remainder, line_nr)
+                line = Line(tabwidth)
+                thislevel = nextlevel
+            else:
+                line.append(token.text)
+                token = tokens.pop(0) if tokens else None
+
+        if stack:
+            raise SyntaxError("reached EOF while still looking for closing tags")
+
+        # At the end of my money, I always have a little bit of month
+        # left over - Loesje
+        line.finish(thislevel)
+        lines.append(line)
+
+        return "".join([str(line) for line in lines])
 
 
-class HTML(Mode):
+class DjHTML(Mode):
     """
-    Mode to indent HTML tags. Makes no attempt at tree-building, just
-    indents whenever there are more opening than closing tags on a
-    line.
+    This mode is the official entrypoint of DjHTML. Usage:
+
+    >>> DjHTML(input_string).indent(tabwidth=4)
 
     """
 
-    TAG = re.compile(r"</?([a-z]+) ?[^>]*>?")
+    TOKEN = re.compile(
+        Mode.TOKEN.pattern + r"|(<style.*?</style>)|(<script.*?</script>)|(<.*?>)"
+    )
+
     IGNORE_TAGS = [
+        "doctype",
         "area",
         "base",
         "br",
@@ -129,117 +210,75 @@ class HTML(Mode):
         "wbr",
     ]
 
-    def __init__(self, line):
-        self.line = line
-        self.django = Django(line)
-        self.parse_line()
+    def create_tokens(self, token, line_nr):
+        """
+        Create "special" tokens when a <style> or <script> tag is
+        encountered.
 
-    def parse_line(self):
-        self.tags = []
-        for tag in self.TAG.finditer(self.line):
-            if tag.group(1) in self.IGNORE_TAGS or tag.group(0)[-2] == "/":
-                continue
-            elif tag.group(0)[1] == "/":
-                self.tags.append(-1)
-            else:
-                self.tags.append(1)
+        """
+        token_type = self.get_token_type(token)
+        if token_type is Token.Style and "\n" in token:
+            if match := re.match("(?s)(<.*?>)(.*)(</style>)", token):
+                token1 = Token.TagOpen(match.group(1), line_nr)
+                token2 = Token.Style(match.group(2), line_nr, mode=DjCSS)
+                token3 = Token.TagClose(match.group(3), line_nr)
+                return [token1, token2, token3]
+        if token_type is Token.Script and "\n" in token:
+            if match := re.match("(?s)(<.*?>)(.*)(</script>)", token):
+                token1 = Token.TagOpen(match.group(1), line_nr)
+                token2 = Token.Text(match.group(2), line_nr, mode=DjJS)
+                token3 = Token.TagClose(match.group(3), line_nr)
+                return [token1, token2, token3]
+        return [token_type(token, line_nr)]
 
-    @property
-    def thislevel(self):
-        level = 0
-        if self.TAG.match(self.line.lstrip()):
-            for tag in self.tags:
-                if tag < 0:
-                    level += tag
-                else:
-                    break
-        return level + self.django.thislevel
+    def get_token_type(self, token):
+        if token.startswith("<style"):
+            return Token.Style
+        if token.startswith("<script"):
+            return Token.Script
 
-    @property
-    def nextlevel(self):
-        return sum(self.tags) + self.django.nextlevel
+        if token.startswith("<"):
+            if tag_name := re.search(r"(\w+)", token):
+                if tag_name.group(1).lower() in self.IGNORE_TAGS:
+                    return Token.Text
+                if token.endswith("/>"):
+                    return Token.Text
+                if token.startswith("</"):
+                    return Token.TagClose
+                return Token.TagOpen
 
-    @property
-    def nextmode(self):
-        if "{% comment %}" in self.line and "{% endcomment %" not in self.line:
-            return Comment
-        if "<style" in self.line and "</style" not in self.line:
-            return CSS
-        if "<script" in self.line and "</script" not in self.line:
-            return JS
-        return self.__class__
+        return super().get_token_type(token)
 
 
-class CSS(Mode):
+class DjCSS(Mode):
     """
-    Indent CSS rules by counting braces.
-
-    """
-
-    def __init__(self, line):
-        self.line = line
-        self.django = Django(line)
-        self.parse_line()
-
-    def parse_line(self):
-        self.braces = []
-        for char in self.line:
-            if char == "{":
-                self.braces.append(1)
-            elif char == "}":
-                self.braces.append(-1)
-
-    @property
-    def thislevel(self):
-        level = 0
-        if self.line.lstrip().startswith("}"):
-            for brace in self.braces:
-                if brace < 0:
-                    level += brace
-                else:
-                    break
-        if self.nextmode is not self.__class__:
-            level -= 1
-        return level + self.django.thislevel
-
-    @property
-    def nextlevel(self):
-        level = sum(self.braces)
-        if self.nextmode is not self.__class__:
-            level -= 1
-        return level + self.django.nextlevel
-
-    @property
-    def nextmode(self):
-        if "</style>" in self.line:
-            return HTML
-        return self.__class__
-
-
-class JS(CSS):
-    """
-    Same as CSS mode.
+    Mode for indenting CSS.
 
     """
 
-    @property
-    def nextmode(self):
-        if "</script>" in self.line:
-            return HTML
-        return self.__class__
+    TOKEN = re.compile(Mode.TOKEN.pattern + r"|([{}])")
+
+    def get_token_type(self, token):
+        if token == "{":
+            return Token.BraceOpen
+        if token == "}":
+            return Token.BraceClose
+        return super().get_token_type(token)
+
+
+class DjJS(DjCSS):
+    """
+    Mode for indenting Javascript.
+
+    """
+
+    pass
 
 
 class Comment(Mode):
     """
-    Mode for Django comments. Preserves all whitespace within them.
+    Mode for comments. Preserves all whitespace within them.
 
     """
 
-    def get_line(self, level):
-        return self.line
-
-    @property
-    def nextmode(self):
-        if "{% endcomment %}" in self.line:
-            return HTML
-        return self.__class__
+    pass

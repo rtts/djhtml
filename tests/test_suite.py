@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from djhtml.modes import HTML
+from djhtml.modes import DjHTML
 
 
 class TestSuite(unittest.TestCase):
@@ -18,17 +18,9 @@ class TestSuite(unittest.TestCase):
                 with self.subTest(filename):
                     basename, _ = os.path.splitext(filename)
                     with open(os.path.join(self.DIR, filename), "r") as f:
-                        inputfile = f.readlines()
+                        actual_input = f.read()
                     with open(os.path.join(self.DIR, f"{basename}.out"), "r") as f:
-                        expected_output = f.readlines()
-
-                    current_mode = HTML
-                    current_level = 0
-                    actual_output = []
-                    for line in inputfile:
-                        mode = current_mode(line.rstrip())
-                        actual_output.append(mode.get_line(current_level) + "\n")
-                        current_level += mode.nextlevel
-                        current_mode = mode.nextmode
+                        expected_output = f.read()
+                    actual_output = DjHTML(actual_input).indent(4)
 
                     self.assertEqual(expected_output, actual_output)
