@@ -7,7 +7,7 @@ DjHTML
 Installation
 ------------
 
-You can install DjHTML with the following command:
+Install DjHTML with the following command:
 
     $ pip install djhtml
 
@@ -15,9 +15,29 @@ You can install DjHTML with the following command:
 Usage
 -----
 
-Next, you can use it like so:
+After installation you can indent Django templates using the `djhtml`
+command. It has the following options:
 
-    $ djhtml my-django-template.html
+    $ djhtml --help
+    usage: djhtml [-h] [-i] [-q] [-t N] [-o filename] [filenames ...]
+
+    DjHTML is a Django template indenter that works with mixed
+    HTML/CSS/Javascript templates. It works similar to other code-
+    formatting tools such as Black. The goal is to correctly indent
+    already well-structured templates but not to fix broken ones. A
+    non-zero exit status indicates that a template could not be
+    indented.
+
+    positional arguments:
+      filenames             input filenames
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i, --in-place        modify files in-place
+      -q, --quiet           be quiet
+      -t N, --tabwidth N    tab width
+      -o filename, --output-file filename
+                            output filename
 
 
 Pre-commit configuration
