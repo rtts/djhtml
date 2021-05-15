@@ -1,13 +1,3 @@
-import enum
-
-
-class Types(enum.Enum):
-    TEXT = enum.auto()
-    DJANGO = enum.auto()
-    HTML = enum.auto()
-    CSSJS = enum.auto()
-
-
 class Token:
     """
     Container class for token types.
@@ -17,49 +7,41 @@ class Token:
     class _Base:
         indent = False
         dedent = False
+        newline = False
+        recursive = False
 
-        def __init__(self, text, line_nr, mode=None):
+        def __init__(self, text):
             self.text = text
-            self.line_nr = line_nr
-            self.mode = mode
+
+        def __str__(self):
+            return self.text
 
         def __repr__(self):
             return f"({self.__class__.__name__}:{repr(self.text)})"
 
+    class Newline(_Base):
+        newline = True
+        text = "\n"
+
+        def __init__(self):
+            pass
+
+    class Recursive(_Base):
+        recursive = True
+
+        def __init__(self, text, mode):
+            super().__init__(text)
+            self.mode = mode
+
     class Text(_Base):
-        type = Types.TEXT
+        pass
 
-    class BlockOpen(_Base):
-        type = Types.DJANGO
+    class Open(_Base):
         indent = True
 
-    class BlockClose(_Base):
-        type = Types.DJANGO
+    class Close(_Base):
         dedent = True
 
-    class BlockOpenAndClose(_Base):
-        type = Types.DJANGO
+    class OpenAndClose(_Base):
         indent = True
         dedent = True
-
-    class TagOpen(_Base):
-        type = Types.HTML
-        indent = True
-
-    class TagClose(_Base):
-        type = Types.HTML
-        dedent = True
-
-    class BraceOpen(_Base):
-        type = Types.CSSJS
-        indent = True
-
-    class BraceClose(_Base):
-        type = Types.CSSJS
-        dedent = True
-
-    class Style(_Base):
-        type = Types.HTML
-
-    class Script(_Base):
-        type = Types.HTML

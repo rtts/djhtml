@@ -1,0 +1,26 @@
+<!-- Basic CSS -->
+<style>
+a {
+text-decoration: none;
+}
+</style>
+
+
+<!-- Nested SCSS -->
+<style>
+a {
+text-decoration: none;
+&:hover {
+text-decoration: underline;
+}
+}
+</style>
+
+
+<!-- Multiline comment -->
+<style>
+    /*
+     * Hi mom!
+     *
+     */
+</style>

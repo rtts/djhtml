@@ -1,0 +1,85 @@
+<!-- Basic HTML sanity check -->
+<!doctype html>
+<html>
+<head>
+<title>Plain</title>
+<script src="test.js"></script>
+<link rel="stylesheet" href="test.css">
+</head>
+<body>
+<h1>Title</h1>
+</body>
+</html>
+
+
+<!-- Multiple closing/opening tags on same line -->
+<div>
+    text
+</div><div>
+    text
+</div>
+
+
+<!-- Tag continuation -->
+<div
+id="id"
+class="class">
+text
+</div>
+
+
+<!-- Ignore self-closing tags -->
+<div>
+<div/>
+text
+</div>
+
+
+<!-- Ignore void tags -->
+<img>
+<input>
+<input />
+<input></input>
+<!doctype>
+
+
+<!-- Don't parse style/script as html -->
+<script>
+<ul>
+<li>
+</script>
+
+<style>
+<style>
+</style>
+
+
+<!-- Except for JS templates... -->
+<script id="id" type="text/template" class="class">
+<ul>
+<li/>
+</ul>
+</script>
+
+
+<!-- Ignore multiline comments -->
+<!--
+ 1
+  2
+   3
+-->
+
+
+<!-- Ignore <pre> elements -->
+<pre>
+   <dl>
+  <dt>
+ <dd>
+</pre>
+
+
+<!-- Remove trailing spaces -->
+Invisible spaces here:   
+
+
+<!-- Append final newline -->
