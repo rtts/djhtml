@@ -60,3 +60,16 @@ doStuff();
      *
      */
 </script>
+
+
+<!-- Nasty characters embedded in strings -->
+<script>
+console.log("$(function() {");
+console.log('$(function() {');
+console.log(`$(function() {`);
+console.log(`
+function f() {
+return 42;
+}
+`);
+</script>

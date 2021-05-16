@@ -282,9 +282,10 @@ class DjJS(Mode):
 
     """
 
+    STRING = r"[\"'`].*?[\"'`]"
     BRACES = r"[\{\[\(\)\]\}]"
     COMMENT = DjCSS.COMMENT
-    TOKEN = re.compile(Mode.TOKEN.pattern + f"|({BRACES})|({COMMENT})")
+    TOKEN = re.compile(Mode.TOKEN.pattern + f"|({STRING})|({BRACES})|({COMMENT})")
 
     def indent(self, tabwidth, level=0):
         lines = self.tokenize(tabwidth, level)
@@ -301,6 +302,12 @@ class DjJS(Mode):
             return Token.Open
         if raw_token in "}])":
             return Token.Close
+        if raw_token.startswith(("'", '"')):
+            return Token.Text
+        if raw_token.startswith("`"):
+            if "\n" in raw_token:
+                return Comment
+            return Token.Text
         if raw_token.startswith("/*"):
             if "\n" in raw_token:
                 return Comment
