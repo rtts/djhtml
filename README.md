@@ -1,13 +1,51 @@
 DjHTML
 ======
 
-**A pure-Python Django template indenter without any dependencies.**
+***A pure-Python Django template indenter without dependencies.***
+
+DjHTML is a Django template indenter that works with mixed
+HTML/CSS/Javascript templates. It works similar to other code-
+formatting tools such as [Black](https://github.com/psf/black). The
+goal is to correctly indent already well-structured templates but not
+to fix broken ones.
+
+For example, DjHTML converts the following badly indented template:
+
+    <!doctype html>
+    <html>
+        <body>
+            {% block content %}
+            Hello, world!
+            {% endblock %}
+            <script>
+                $(function() {
+                console.log('Hi mom!');
+                });
+            </script>
+        </body>
+    </html>
+
+To the following:
+
+    <!doctype html>
+    <html>
+        <body>
+            {% block content %}
+                Hello, world!
+            {% endblock %}
+            <script>
+                $(function() {
+                    console.log('Hi mom!');
+                });
+            </script>
+        </body>
+    </html>
 
 
 Installation
 ------------
 
-Install DjHTML with the following command:
+You can install DjHTML with the following command:
 
     $ pip install djhtml
 
@@ -16,38 +54,32 @@ Usage
 -----
 
 After installation you can indent Django templates using the `djhtml`
-command. It has the following options:
+command. The default is to write the indented output to standard out.
+To modify the source file in-place, use the `-i`/`--in-place` option:
 
-    $ djhtml --help
-    usage: djhtml [-h] [-i] [-q] [-t N] [-o filename] [filenames ...]
+    $ djhtml -i template.html
+    Successfully wrote output file template.html
 
-    DjHTML is a Django template indenter that works with mixed
-    HTML/CSS/Javascript templates. It works similar to other code-
-    formatting tools such as Black. The goal is to correctly indent
-    already well-structured templates but not to fix broken ones. A
-    non-zero exit status indicates that a template could not be
-    indented.
+The other available options are:
 
-    positional arguments:
-      filenames             input filenames
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -i, --in-place        modify files in-place
-      -q, --quiet           be quiet
-      -t N, --tabwidth N    tab width
-      -o filename, --output-file filename
-                            output filename
+- `-h`/`--help`: show overview of available options
+- `-q`/`--quiet`: don't print any output
+- `-t`/`--tabwidth`: set tabwidth (default is 4)
+- `-o`/`--output-file`: write output to specified file
 
 
 Pre-commit configuration
 ------------------------
 
-Even better, you can use DjHTML as a
-[pre-commit](https://pre-commit.com/) hook to automatically indent
-your Django templates upon each commit.
+You can use DjHTML as a [pre-commit](https://pre-commit.com/) hook to
+automatically indent your Django templates upon each commit.
 
-First, add the following to your `.pre-commit-config.yaml`:
+First, install pre-commit:
+
+    $ pip install pre-commit
+    $ pre-commit install
+
+Then, add the following to your `.pre-commit-config.yaml`:
 
     repos:
     - repo: https://github.com/rtts/djhtml
@@ -55,30 +87,30 @@ First, add the following to your `.pre-commit-config.yaml`:
       hooks:
       - id: djhtml
 
-Then, run the following command:
+Finally, run the following command:
 
     $ pre-commit autoupdate
 
+Now when you run `git commit` you will see something like the
+following output:
 
-Results
--------
+    $ git commit
 
-Before:
+    djhtml...................................................................Failed
+    - hook id: djhtml
+    - files were modified by this hook
 
-    {% block extrahead %}
-    <script>
-    function f() {
-    return 42;
-    }
-    </script>
-    {% endblock %}
+    Successfully wrote output file template.html
 
-After:
+To inspect the changes that were made, use `git diff`. If you are
+happy with the changes, you can commit them normally. If you're not
+happy, please do the following things:
 
-    {% block extrahead %}
-        <script>
-            function f() {
-                return 42;
-            }
-        </script>
-    {% endblock %}
+1. Run `SKIP=djhtml git commit` to commit anyway, skipping the
+   `djhtml` hook.
+
+2. Consider [opening an issue](issues) with relevant part of the input
+   file that was incorrectly formatted, and an example of how it
+   should have been formatted.
+
+Your feedback for improving DjHTML is very welcome!

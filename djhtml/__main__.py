@@ -73,7 +73,7 @@ def main():
             output_file.write(result)
             if not output_file.name == "<stdout>":
                 print(
-                    f"Successfully wrote output file {output_file.name}",
+                    f"Successfully reformatted {output_file.name}",
                     file=sys.stderr,
                 )
         output_file.close()
