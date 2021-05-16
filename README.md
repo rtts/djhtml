@@ -4,10 +4,10 @@ DjHTML
 ***A pure-Python Django template indenter without dependencies.***
 
 DjHTML is a Django template indenter that works with mixed
-HTML/CSS/Javascript templates. It works similar to other code-
-formatting tools such as [Black](https://github.com/psf/black). The
-goal is to correctly indent already well-structured templates but not
-to fix broken ones.
+HTML/CSS/Javascript templates. It works similar to other
+code-formatting tools such as [Black](https://github.com/psf/black).
+The goal is to correctly indent already well-structured templates but
+not to fix broken ones.
 
 For example, DjHTML converts the following badly indented template:
 
@@ -55,17 +55,18 @@ Usage
 
 After installation you can indent Django templates using the `djhtml`
 command. The default is to write the indented output to standard out.
-To modify the source file in-place, use the `-i`/`--in-place` option:
+To modify the source file in-place, use the `-i` / `--in-place`
+option:
 
     $ djhtml -i template.html
-    Successfully wrote output file template.html
+    Successfully reformatted template.html
 
 The other available options are:
 
-- `-h`/`--help`: show overview of available options
-- `-q`/`--quiet`: don't print any output
-- `-t`/`--tabwidth`: set tabwidth (default is 4)
-- `-o`/`--output-file`: write output to specified file
+- `-h` / `--help`: show overview of available options
+- `-q` / `--quiet`: don't print any output
+- `-t` / `--tabwidth`: set tabwidth (default is 4)
+- `-o` / `--output-file`: write output to specified file
 
 
 Pre-commit configuration
@@ -100,17 +101,17 @@ following output:
     - hook id: djhtml
     - files were modified by this hook
 
-    Successfully wrote output file template.html
+    Successfully reformatted template.html
 
 To inspect the changes that were made, use `git diff`. If you are
-happy with the changes, you can commit them normally. If you're not
-happy, please do the following things:
+happy with the changes, you can commit them normally. If you are not
+happy, please do the following:
 
 1. Run `SKIP=djhtml git commit` to commit anyway, skipping the
    `djhtml` hook.
 
-2. Consider [opening an issue](issues) with relevant part of the input
-   file that was incorrectly formatted, and an example of how it
-   should have been formatted.
+2. Consider [opening an issue](https://github.com/rtts/djhtml/issues)
+   with relevant part of the input file that was incorrectly
+   formatted, and an example of how it should have been formatted.
 
 Your feedback for improving DjHTML is very welcome!
