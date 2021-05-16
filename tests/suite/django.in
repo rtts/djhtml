@@ -55,3 +55,30 @@ console.log("Hi mom!");
        jrei                  `-  |        `::_;   `\ `' /
                                                     `--'
 {% endcomment %}
+
+
+<!-- Django comment with optional comment -->
+{% comment "Yo dawg" %}
+            I heard you like comments
+{% endcomment %}
+
+
+<!-- Various spacings -->
+{%comment    %}
+             %}
+{%    endcomment%}
+{%if%}
+{%block content    %}
+Yuck!
+{%    endblock%}
+{%    endif    %}
+
+
+<!-- Inconsistent nesting -->
+{% block %}
+1
+{% with %}
+2
+{% endblock %}
+1
+{% endwith %}

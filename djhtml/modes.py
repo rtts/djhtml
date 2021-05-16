@@ -19,7 +19,7 @@ class Mode:
     """
 
     TAG = r"\{%.*?%\}"
-    COMMENT = r"{% comment .*? endcomment %}"
+    COMMENT = r"{% *comment.*?endcomment *%}"
     TOKEN = re.compile(f"(?s)({COMMENT})|({TAG})")
 
     DJANGO_OPENING_TAGS = [
@@ -55,6 +55,8 @@ class Mode:
     ]
 
     def __init__(self, source):
+        if "\t" in source:
+            raise SyntaxError("This file contains TAB characters.")
         self.source = source
 
     def indent(self, tabwidth, level=0):
@@ -132,7 +134,7 @@ class Mode:
         Given the raw token string, determine what type it is.
 
         """
-        if raw_token.startswith("{% comment"):
+        if re.match(r"{% *comment", raw_token):
             return Comment
         if raw_token.startswith("{%"):
             if tag_name := re.search(r"(\w+)", raw_token):
