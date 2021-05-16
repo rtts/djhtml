@@ -8,6 +8,7 @@ class Line:
         self.tabwidth = tabwidth
         self.initial_level = initial_level
         self.tokens = []
+        self.offset = 0
 
     def append(self, token):
         self.tokens.append(token)
@@ -56,7 +57,8 @@ class Line:
 
     def __str__(self):
         if self.text:
-            return " " * self.tabwidth * self.level + self.text + "\n"
+            space = " " * self.tabwidth * self.level + " " * self.offset
+            return space + self.text + "\n"
         return "\n"
 
     def __repr__(self):

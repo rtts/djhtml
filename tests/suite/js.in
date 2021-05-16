@@ -33,6 +33,7 @@ arg3,
 one()
 .two()
 .three();
+four();
 </script>
 
 <script>

@@ -31,8 +31,9 @@
 <!-- Function chaining -->
 <script>
     one()
-    .two()
-    .three();
+        .two()
+        .three();
+    four();
 </script>
 
 <script>
@@ -57,5 +58,5 @@
     /*
      * Hi mom!
      *
-    */
+     */
 </script>

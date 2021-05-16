@@ -256,6 +256,14 @@ class DjCSS(Mode):
     COMMENT = r"/\*.*?\*/"
     TOKEN = re.compile(Mode.TOKEN.pattern + f"|({BRACES})|({COMMENT})")
 
+    def indent(self, tabwidth, level=0):
+        lines = self.tokenize(tabwidth, level)
+        for line in lines:
+            if isinstance(line, Line):
+                if line.text.startswith("*/"):
+                    line.offset = 1
+        return "".join([str(line) for line in lines])
+
     def get_token_type(self, raw_token):
         if raw_token == "{":
             return Token.Open
@@ -277,6 +285,16 @@ class DjJS(Mode):
     BRACES = r"[\{\[\(\)\]\}]"
     COMMENT = DjCSS.COMMENT
     TOKEN = re.compile(Mode.TOKEN.pattern + f"|({BRACES})|({COMMENT})")
+
+    def indent(self, tabwidth, level=0):
+        lines = self.tokenize(tabwidth, level)
+        for line in lines:
+            if isinstance(line, Line):
+                if line.text.startswith("."):
+                    line.offset = tabwidth
+                if line.text.startswith("*/"):
+                    line.offset = 1
+        return "".join([str(line) for line in lines])
 
     def get_token_type(self, raw_token):
         if raw_token in "{[(":
