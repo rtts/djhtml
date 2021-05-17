@@ -73,3 +73,31 @@ return 42;
 }
 `);
 </script>
+
+
+<!-- Real-life example kindly provided by @jacklinke -->
+<script>
+    const format_duration_value = (a) => {
+        let secs = a * 3600;  // get total amount of seconds from your input
+        const days = Math.floor(secs / (3600 * 24));
+        return (`
+            <div class="form-inline text-nowrap text-center">
+                ${days.toString().padStart(2,'0')}
+                <small>m</small>
+            </div>
+        `);
+    };
+</script>
+
+
+<!-- More Javascript shenanigans -->
+<script>
+$(function1()
+{
+var foo = (function2(){
+doStuff();
+})();
+});
+// Jeez
+</script>
+

@@ -23,4 +23,5 @@ class TestSuite(unittest.TestCase):
                         expected_output = f.read()
                     actual_output = DjHTML(actual_input).indent(4)
 
-                    self.assertEqual(expected_output, actual_output)
+                    if expected_output != actual_output:
+                        raise Exception(f"Failed to indent {filename}")

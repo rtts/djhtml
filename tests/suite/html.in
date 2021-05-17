@@ -20,10 +20,49 @@
 </div>
 
 
+<!-- Some crazy edgecases that even the mighty web-mode fails to indent correctly -->
+
+<div>
+<div>
+<div>
+text
+</div></div></div>
+
+<div><div><div>
+text
+</div>
+</div>
+</div>
+
+<div0><div1>
+text2</div1><div1><div2>
+text3
+</div2><div2>
+text3
+</div2>
+</div1>
+</div0>
+
+<div0>
+<div1>
+<div2>
+text3
+</div2></div1></div0><div0>
+text1
+</div0>
+
+
 <!-- Tag continuation -->
 <div
 id="id"
 class="class">
+text
+</div>
+
+<div
+id="id"
+class="class"
+>
 text
 </div>
 
@@ -76,6 +115,23 @@ text
   <dt>
  <dd>
 </pre>
+
+
+<!-- Real life example kindly provided by @jacklinke -->
+<div class="row">
+<div class="input-group date" data-provide="datepicker" data-date-format="yyyy/mm/dd">
+<div class="btn">
+</div></div>
+</div><div>
+<div class="custom-control custom-switch">
+<input type="checkbox" name="filter-changes" id="filter-changes" class="custom-control-input fs-nano" value="0" {% if request.session.manage_filter_changes %}{% if request.session.manage_filter_changes == True %}checked{% endif %}{% endif %}>
+</div>
+<form class="form-inline">
+<div class="custom-control custom-switch">
+<input type="checkbox" name="filter-status-new" id="filter-status-new" class="custom-control-input fs-nano" value="0" {% if request.session.manage_filter_status_new %}{% if request.session.manage_filter_status_new == True %}checked{% endif %}{% endif %}>
+</div>
+</form>
+</div>
 
 
 <!-- Remove trailing spaces -->

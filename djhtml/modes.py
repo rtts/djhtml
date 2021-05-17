@@ -4,23 +4,22 @@ from .lines import Line
 from .tokens import Token
 
 
-class Mode:
+class DjText:
     """
-    Base class for modes. Actual modes are implemented by the
-    following subclasses:
+    Mode for indenting text files that contain Django template tags.
+    Also serves as the base class for the other modes:
 
     - DjHTML
     - DjCSS
     - DjJS
-    - Comment
-
-    This class contains their shared attributes and methods.
+    - DjNoOp
 
     """
 
     TAG = r"\{%.*?%\}"
-    COMMENT = r"{% *comment.*?endcomment *%}"
-    TOKEN = re.compile(f"(?s)({COMMENT})|({TAG})")
+    LINECOMMENT = r"{#.*?#}"
+    BLOCKCOMMENT = r"{% *comment.*?endcomment *%}"
+    TOKEN = re.compile(f"(?s)({LINECOMMENT})|({BLOCKCOMMENT})|({TAG})")
 
     DJANGO_OPENING_TAGS = [
         "if",
@@ -32,6 +31,7 @@ class Mode:
         "verbatim",
         "spaceless",
         "autoescape",
+        "localize",
         "blocktrans",
         "blocktranslate",
     ]
@@ -50,46 +50,107 @@ class Mode:
         "endverbatim",
         "endspaceless",
         "endautoescape",
+        "endlocalize",
         "endblocktrans",
         "endblocktranslate",
     ]
 
-    def __init__(self, source):
-        if "\t" in source:
-            raise SyntaxError("This file contains TAB characters.")
+    def __init__(self, source, level=0, line_nr=1):
+        self.level = level
+        self.line_nr = line_nr
         self.source = source
 
-    def indent(self, tabwidth, level=0):
+    def indent(self, tabwidth):
         """
         Return the indented text as a single string.
 
         """
-        lines = self.tokenize(tabwidth, level)
+        lines = self.tokenize(tabwidth)
+        self.parse(lines)
         return "".join([str(line) for line in lines])
 
-    def tokenize(self, tabwidth, level):
+    def parse(self, lines):
         """
-        Split the source text into lines with tokens. Recursively call
-        other modes when the token is recursive.
+        You found the top-secret indenting algorithm!
+
+        """
+        stack = []
+        for line in lines:
+            first_token = True
+            for token in line.tokens:
+
+                # When a dedenting token is found, match it with the
+                # token at the top of the stack. If there is no match,
+                # raise a syntax error.
+                if token.dedents:
+                    try:
+                        opening_token = stack.pop()
+                    except IndexError:
+                        raise SyntaxError(
+                            f"found closing “{token.text}” on line {token.line_nr} that"
+                            " was never opened."
+                        )
+                    if token.expect and token.expect != opening_token.expect:
+                        raise SyntaxError(
+                            f"found closing “{token.text}” on line {token.line_nr}"
+                            f" while expecting “{opening_token.expect}”."
+                        )
+
+                    # If this dedenting token is the first in line,
+                    # it's somewhat special: the line level will be
+                    # set to to the line level of the corresponding
+                    # opening token.
+                    if first_token:
+                        line.level = opening_token.level
+
+                # If the first token is _not_ a dedenting token, the
+                # line level will one higher than that of the token at
+                # the top of the stack.
+                elif first_token:
+                    line.level = stack[-1].level + 1 if stack else self.level
+
+                # Push indenting tokens onto the stack. Note that some
+                # tokens can be both indenting and dedenting (e.g.,
+                # ``{% else %}``), hence the if instead of elif.
+                if token.indents:
+                    token.level = line.level
+                    stack.append(token)
+
+                # Subsequent tokens have no effect on the line level
+                # (but tokens with only spaces don't count).
+                if token.text.strip():
+                    first_token = False
+
+        # Ensure the stack is empty at the end of the run.
+        if stack:
+            token = stack.pop()
+            raise SyntaxError(
+                f"found opening “{token.text}” on line {token.line_nr} that wasn’t"
+                " closed."
+            )
+
+    def tokenize(self, tabwidth):
+        """
+        Split the source text into tokens and place them on lines.
 
         """
         lines = []
-        line = Line(tabwidth, level)
+        line_nr = self.line_nr
+        line = Line(tabwidth)
 
         for raw_token in self.TOKEN.split(self.source):
             if not raw_token:
                 continue
 
-            for token in self.create_tokens(raw_token):
+            for token in self.create_tokens(raw_token, line_nr):
                 if token.newline:
                     lines.append(line)
-                    line = next(line)
-                elif token.recursive:
-                    lines.append(
-                        token.mode(token.text).indent(tabwidth, line.level).rstrip("\n")
-                    )
-                else:
+                    line = Line(tabwidth)
+                    line_nr += 1
+
+                elif token:
                     line.append(token)
+                    line_nr += token.text.count("\n")
 
         # At the end of my money, I always have a little bit of month
         # left over - Loesje
@@ -98,57 +159,76 @@ class Mode:
 
         return lines
 
-    def create_tokens(self, raw_token):
+    def create_tokens(self, raw_token, line_nr):
         """
-        Given a raw token string, create one or more tokens.
+        Given a raw token string, return a list of tokens.
+
+        """
+        if re.match(r"{% *comment.*\n.*\n", raw_token):
+            return self.create_noop_tokens(raw_token, line_nr)
+
+        if "\n" in raw_token:
+            return self.split_tokens(raw_token, line_nr)
+
+        return [self.create_token(raw_token, line_nr)]
+
+    def create_token(self, raw_token, line_nr):
+        """
+        Given a raw token string, return a single token.
+
+        """
+        if raw_token.startswith("{%"):
+            if tag := re.search(r"(\w+)", raw_token):
+                name = tag.group(1)
+
+                # The "expect" value should really be set to the
+                # expected end tag of this block. However, Django's
+                # elif, else and empty tags are throwing soot in the
+                # food.
+                expect = "{% endsomething %}"
+                if name in self.DJANGO_OPENING_TAGS:
+                    return Token.Open(raw_token, line_nr, expect)
+                if name in self.DJANGO_OPENING_AND_CLOSING_TAGS:
+                    return Token.OpenAndClose(raw_token, line_nr, expect)
+                if name in self.DJANGO_CLOSING_TAGS:
+                    return Token.Close(raw_token, line_nr, expect)
+
+        return Token.Text(raw_token, line_nr)
+
+    def create_noop_tokens(self, raw_token, line_nr):
+        """
+        Create 3 tokens: an opening one, a recursive one, and a closing one.
 
         """
         tokens = []
-        token_type = self.get_token_type(raw_token)
-        if token_type is Comment:
+        lines = raw_token.split("\n")
+        head = lines[0]
+        body = "\n".join(lines[1:-1])
+        tail = lines[-1]
 
-            # Split token string into first line, middle, and last line
-            head, body, tail = filter(bool, re.split(r"(^.*)\n|\n(.*$)", raw_token))
-            tokens.append(Token.Open(head))
-            tokens.append(Token.Newline())
-            tokens.append(Token.Recursive(body, mode=Comment))
-            tokens.append(Token.Newline())
-            tokens.append(Token.Close(tail))
-
-        elif "\n" in raw_token:
-
-            # Create a separate token for each line in the token string
-            for token in re.split("(\n)", raw_token):
-                if token == "\n":
-                    tokens.append(Token.Newline())
-                elif token:
-                    tokens.append(token_type(token))
-                    token_type = Token.Text
-        else:
-            tokens.append(token_type(raw_token))
+        tokens.append(Token.Open(head, line_nr))
+        tokens.append(Token.Newline())
+        tokens.append(Token.Recursive(body + "\n", line_nr + 1, mode=DjNoOp))
+        tokens.append(Token.Newline())
+        tokens.append(Token.Close(tail, line_nr + raw_token.count("\n")))
 
         return tokens
 
-    def get_token_type(self, raw_token):
+    def split_tokens(self, raw_token, line_nr):
         """
-        Given the raw token string, determine what type it is.
+        Create a separate token for each line in the token string.
 
         """
-        if re.match(r"{% *comment", raw_token):
-            return Comment
-        if raw_token.startswith("{%"):
-            if tag_name := re.search(r"(\w+)", raw_token):
-                if tag_name.group(1) in self.DJANGO_OPENING_TAGS:
-                    return Token.Open
-                if tag_name.group(1) in self.DJANGO_OPENING_AND_CLOSING_TAGS:
-                    return Token.OpenAndClose
-                if tag_name.group(1) in self.DJANGO_CLOSING_TAGS:
-                    return Token.Close
+        tokens = []
+        for token in raw_token.split("\n"):
+            tokens.append(self.create_token(token, line_nr))
+            tokens.append(Token.Newline())
 
-        return Token.Text
+        # Omit final newline token
+        return tokens[:-1]
 
 
-class DjHTML(Mode):
+class DjHTML(DjText):
     """
     This mode is the entrypoint of DjHTML. Usage:
 
@@ -162,7 +242,7 @@ class DjHTML(Mode):
     PRE = r"<pre.*?</pre>"
     TAG = r"<.*?>"
     TOKEN = re.compile(
-        Mode.TOKEN.pattern + f"|({STYLE})|({SCRIPT})|({COMMENT})|({PRE})|({TAG})"
+        DjText.TOKEN.pattern + f"|({STYLE})|({SCRIPT})|({COMMENT})|({PRE})|({TAG})"
     )
 
     IGNORE_TAGS = [
@@ -185,70 +265,73 @@ class DjHTML(Mode):
         "wbr",
     ]
 
-    def create_tokens(self, raw_token):
-        """
-        Create recursive tokens when a <style> or <script> tag is
-        encountered.
+    def indent(self, tabwidth):
+        lines = self.tokenize(tabwidth)
+        self.parse(lines)
+        for line in lines:
+            if isinstance(line, Line) and line.text.startswith(">"):
+                line.offset -= tabwidth
 
-        """
-        tokens = []
-        token_type = self.get_token_type(raw_token)
+        return "".join([str(line) for line in lines])
 
-        if token_type is DjCSS:
-            match = re.match(r"(?s)(<.*?>)(.*)(</style>)", raw_token)
-            tokens.append(Token.Open(match.group(1)))
-            tokens.append(Token.Newline())
-            tokens.append(Token.Recursive(match.group(2).strip("\n"), mode=DjCSS))
-            tokens.append(Token.Newline())
-            tokens.append(Token.Close(match.group(3)))
-            return tokens
+    def create_tokens(self, raw_token, line_nr):
+        if re.match(r"<style[ >].*\n.*\n", raw_token):
+            return self.create_style_tokens(raw_token, line_nr)
+        if re.match(r"<script[ >].*\n.*\n", raw_token):
+            return self.create_script_tokens(raw_token, line_nr)
+        if re.match(r"<pre[ >].*\n.*\n", raw_token):
+            return self.create_noop_tokens(raw_token, line_nr)
+        if re.match(r"<!--.*\n.*\n", raw_token):
+            return self.create_noop_tokens(raw_token, line_nr)
 
-        if token_type is DjJS:
-            match = re.match(r"(?s)(<.*?>)(.*)(</script>)", raw_token)
-            tokens.append(Token.Open(match.group(1)))
-            tokens.append(Token.Newline())
-            if re.match(r'<script[^>]+type="text/template"', raw_token):
-                tokens.append(Token.Recursive(match.group(2).strip("\n"), mode=DjHTML))
-            else:
-                tokens.append(Token.Recursive(match.group(2).strip("\n"), mode=DjJS))
-            tokens.append(Token.Newline())
-            tokens.append(Token.Close(match.group(3)))
-            return tokens
+        return super().create_tokens(raw_token, line_nr)
 
-        return super().create_tokens(raw_token)
-
-    def get_token_type(self, raw_token):
-        if raw_token.startswith("<style"):
-            if "\n" in raw_token:
-                return DjCSS
-            return Token.Text
-        if raw_token.startswith("<script"):
-            if "\n" in raw_token:
-                return DjJS
-            return Token.Text
-        if raw_token.startswith("<!--"):
-            if "\n" in raw_token:
-                return Comment
-            return Token.Text
-        if raw_token.startswith("<pre"):
-            if "\n" in raw_token:
-                return Comment
-            return Token.Text
+    def create_token(self, raw_token, line_nr):
+        if raw_token.startswith(("<style", "<script", "<pre", "<!--")):
+            return Token.Text(raw_token, line_nr)
 
         if raw_token.startswith("<"):
-            if tag_name := re.search(r"(\w+)", raw_token):
-                if tag_name.group(1).lower() in self.IGNORE_TAGS:
-                    return Token.Text
+            if tag_name := re.match(r"<[/!]?(\w+)", raw_token):
+                name = tag_name.group(1).lower()
+                if name in self.IGNORE_TAGS:
+                    return Token.Text(raw_token, line_nr)
                 if raw_token.endswith("/>"):
-                    return Token.Text
+                    return Token.Text(raw_token, line_nr)
                 if raw_token.startswith("</"):
-                    return Token.Close
-                return Token.Open
+                    return Token.Close(raw_token, line_nr, f"</{name}>")
+                return Token.Open(raw_token, line_nr, f"</{name}>")
 
-        return super().get_token_type(raw_token)
+        return super().create_token(raw_token, line_nr)
+
+    def create_style_tokens(self, raw_token, line_nr):
+        tokens = []
+        match = re.match(r"(?s)(<.*?>)(.*)(</style>)", raw_token)
+
+        tokens.append(Token.Open(match.group(1), line_nr))
+        tokens.append(Token.Newline())
+        tokens.append(Token.Recursive(match.group(2)[1:], line_nr + 1, mode=DjCSS))
+        tokens.append(Token.Newline())
+        tokens.append(Token.Close(match.group(3), line_nr + raw_token.count("\n")))
+
+        return tokens
+
+    def create_script_tokens(self, raw_token, line_nr):
+        tokens = []
+        match = re.match(r"(?s)(<.*?>)(.*)(</script>)", raw_token)
+
+        tokens.append(Token.Open(match.group(1), line_nr))
+        tokens.append(Token.Newline())
+        if re.match(r'<script[^>]+type="text/template"', raw_token):
+            tokens.append(Token.Recursive(match.group(2)[1:], line_nr + 1, mode=DjHTML))
+        else:
+            tokens.append(Token.Recursive(match.group(2)[1:], line_nr + 1, mode=DjJS))
+        tokens.append(Token.Newline())
+        tokens.append(Token.Close(match.group(3), line_nr + raw_token.count("\n")))
+
+        return tokens
 
 
-class DjCSS(Mode):
+class DjCSS(DjText):
     """
     Mode for indenting CSS.
 
@@ -256,41 +339,48 @@ class DjCSS(Mode):
 
     BRACES = r"[\{\}]"
     COMMENT = r"/\*.*?\*/"
-    TOKEN = re.compile(Mode.TOKEN.pattern + f"|({BRACES})|({COMMENT})")
+    TOKEN = re.compile(DjText.TOKEN.pattern + f"|({BRACES})|({COMMENT})")
 
-    def indent(self, tabwidth, level=0):
-        lines = self.tokenize(tabwidth, level)
+    def indent(self, tabwidth):
+        lines = self.tokenize(tabwidth)
+        self.parse(lines)
         for line in lines:
-            if isinstance(line, Line):
-                if line.text.startswith("*/"):
-                    line.offset = 1
+            if isinstance(line, Line) and line.text.startswith("*/"):
+                line.offset = 1
+
         return "".join([str(line) for line in lines])
 
-    def get_token_type(self, raw_token):
+    def create_tokens(self, raw_token, line_nr):
+        if re.search(r"\n.*\n", raw_token) and raw_token.startswith("/*"):
+            return self.create_noop_tokens(raw_token, line_nr)
+
         if raw_token == "{":
-            return Token.Open
+            return [Token.Open(raw_token, line_nr, "{")]
         if raw_token == "}":
-            return Token.Close
-        if raw_token.startswith("/*"):
-            if "\n" in raw_token:
-                return Comment
-            return Token.Text
-        return super().get_token_type(raw_token)
+            return [Token.Close(raw_token, line_nr, "{")]
+
+        return super().create_tokens(raw_token, line_nr)
 
 
-class DjJS(Mode):
+class DjJS(DjText):
     """
     Mode for indenting Javascript.
 
     """
 
-    STRING = r"[\"'`].*?[\"'`]"
+    STRING1 = r'".*?"'
+    STRING2 = r"'.*?'"
+    STRING3 = r"`.*?`"
     BRACES = r"[\{\[\(\)\]\}]"
     COMMENT = DjCSS.COMMENT
-    TOKEN = re.compile(Mode.TOKEN.pattern + f"|({STRING})|({BRACES})|({COMMENT})")
+    TOKEN = re.compile(
+        DjText.TOKEN.pattern
+        + f"|({STRING1})|({STRING2})|({STRING3})|({BRACES})|({COMMENT})"
+    )
 
-    def indent(self, tabwidth, level=0):
-        lines = self.tokenize(tabwidth, level)
+    def indent(self, tabwidth):
+        lines = self.tokenize(tabwidth)
+        self.parse(lines)
         for line in lines:
             if isinstance(line, Line):
                 if line.text.startswith("."):
@@ -299,29 +389,36 @@ class DjJS(Mode):
                     line.offset = 1
         return "".join([str(line) for line in lines])
 
-    def get_token_type(self, raw_token):
-        if raw_token in "{[(":
-            return Token.Open
-        if raw_token in "}])":
-            return Token.Close
-        if raw_token.startswith(("'", '"')):
-            return Token.Text
-        if raw_token.startswith("`"):
-            if "\n" in raw_token:
-                return Comment
-            return Token.Text
-        if raw_token.startswith("/*"):
-            if "\n" in raw_token:
-                return Comment
-            return Token.Text
-        return super().get_token_type(raw_token)
+    def create_tokens(self, raw_token, line_nr):
+        if re.search(r"\n.*\n", raw_token):
+            if raw_token.startswith("/*"):
+                return self.create_noop_tokens(raw_token, line_nr)
+            if raw_token.startswith("`"):
+                return self.create_noop_tokens(raw_token, line_nr)
+
+        if raw_token.startswith(('"', "'")):
+            return super().create_tokens(raw_token, line_nr)
+        if raw_token == "{":
+            return [Token.Open(raw_token, line_nr, "}")]
+        if raw_token == "}":
+            return [Token.Close(raw_token, line_nr, "}")]
+        if raw_token == "[":
+            return [Token.Open(raw_token, line_nr, "]")]
+        if raw_token == "]":
+            return [Token.Close(raw_token, line_nr, "]")]
+        if raw_token == "(":
+            return [Token.Open(raw_token, line_nr, "]")]
+        if raw_token == ")":
+            return [Token.Close(raw_token, line_nr, "]")]
+
+        return super().create_tokens(raw_token, line_nr)
 
 
-class Comment(Mode):
+class DjNoOp(DjText):
     """
-    Mode for comments.
+    Mode that does nothing. Used for comments.
 
     """
 
-    def indent(self, *args, **kwargs):
+    def indent(self, *args):
         return self.source

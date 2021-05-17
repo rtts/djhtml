@@ -5,13 +5,18 @@ class Token:
     """
 
     class _Base:
-        indent = False
-        dedent = False
+        indents = False
+        dedents = False
         newline = False
         recursive = False
 
-        def __init__(self, text):
+        def __init__(self, text, line_nr, expect=""):
             self.text = text
+            self.line_nr = line_nr
+            self.expect = expect
+
+        def __bool__(self):
+            return bool(self.text)
 
         def __str__(self):
             return self.text
@@ -21,7 +26,6 @@ class Token:
 
     class Newline(_Base):
         newline = True
-        text = "\n"
 
         def __init__(self):
             pass
@@ -29,19 +33,20 @@ class Token:
     class Recursive(_Base):
         recursive = True
 
-        def __init__(self, text, mode):
-            super().__init__(text)
+        def __init__(self, text, line_nr, mode):
+            self.text = text
+            self.line_nr = line_nr
             self.mode = mode
 
     class Text(_Base):
         pass
 
     class Open(_Base):
-        indent = True
+        indents = True
 
     class Close(_Base):
-        dedent = True
+        dedents = True
 
     class OpenAndClose(_Base):
-        indent = True
-        dedent = True
+        indents = True
+        dedents = True

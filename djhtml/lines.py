@@ -4,13 +4,17 @@ class Line:
 
     """
 
-    def __init__(self, tabwidth, initial_level):
+    def __init__(self, tabwidth):
         self.tabwidth = tabwidth
-        self.initial_level = initial_level
         self.tokens = []
+        self.level = 0
         self.offset = 0
 
     def append(self, token):
+        """
+        Append tokens to the line.
+
+        """
         self.tokens.append(token)
 
     @property
@@ -21,44 +25,23 @@ class Line:
         """
         return "".join([str(token) for token in self.tokens]).strip()
 
-    @property
-    def dedent(self):
-        """
-        Whether this line should be dedented compared to the previous line.
-
-        """
-        for token in self.tokens:
-            if token.dedent:
-                return True
-            if token.indent:
-                return False
-        return False
-
-    @property
-    def indent(self):
-        """
-        Whether the next line should be indented compared to this line.
-
-        """
-        for token in reversed(self.tokens):
-            if token.indent:
-                return True
-            if token.dedent:
-                return False
-        return False
-
-    @property
-    def level(self):
-        """
-        This line's indentation level.
-
-        """
-        return self.initial_level - 1 if self.dedent else self.initial_level
-
     def __str__(self):
+        """
+        The final, indented text of this line. Make sure to set the level
+        and optionally offset before calling ``str()``.
+
+        """
+        # If the line consists of a recursive token, return its
+        # rendered output instead.
+        if self.tokens and self.tokens[0].recursive:
+            token = self.tokens[0]
+            return token.mode(token.text, self.level, token.line_nr).indent(
+                self.tabwidth
+            )
+
         if self.text:
-            space = " " * self.tabwidth * self.level + " " * self.offset
-            return space + self.text + "\n"
+            spaces = self.tabwidth * self.level + self.offset
+            return " " * spaces + self.text + "\n"
         return "\n"
 
     def __repr__(self):
@@ -66,7 +49,3 @@ class Line:
 
     def __bool__(self):
         return bool(self.text)
-
-    def __next__(self):
-        level = self.level + 1 if self.indent else self.level
-        return Line(self.tabwidth, level)
