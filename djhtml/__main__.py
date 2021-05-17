@@ -1,7 +1,21 @@
 import argparse
 import sys
 
-from .modes import DjHTML
+from . import modes
+
+
+def verify_changed(source, result):
+    """
+    Verify that the source is either exactly equal to the result or
+    that the result has only changed by added or removed whitespace.
+
+    """
+    output_lines = result.split("\n")
+    for line_nr, line in enumerate(source.split("\n")):
+        if line != output_lines[line_nr]:
+            return True
+        if line.strip() != result[line_nr].strip():
+            raise IndentationError("Non-whitespace changes detected. Core dumped.")
 
 
 def main():
@@ -54,9 +68,17 @@ def main():
         sys.exit("Will not modify files in-place without -i option")
 
     exit_status = 0
+
+    Mode = modes.DjHTML
+    if sys.argv[0].endswith("djcss"):
+        Mode = modes.DjCSS
+    if sys.argv[0].endswith("djjs"):
+        Mode = modes.DjCSS
+
     for input_file in args.input_files:
+        source = input_file.read()
         try:
-            result = DjHTML(input_file.read()).indent(args.tabwidth)
+            result = Mode(source).indent(args.tabwidth)
         except SyntaxError as e:
             if not args.quiet:
                 print(
@@ -68,15 +90,18 @@ def main():
         finally:
             input_file.close()
 
-        output_file = open(input_file.name, "w") if args.in_place else args.output_file
-        if not (args.quiet and output_file.name == "<stdout>"):
-            output_file.write(result)
-            if not output_file.name == "<stdout>":
-                print(
-                    f"Successfully reformatted {output_file.name}",
-                    file=sys.stderr,
-                )
-        output_file.close()
+        if verify_changed(source, result):
+            output_file = (
+                open(input_file.name, "w") if args.in_place else args.output_file
+            )
+            if not (args.quiet and output_file.name == "<stdout>"):
+                output_file.write(result)
+                if not output_file.name == "<stdout>":
+                    print(
+                        f"Successfully reformatted {output_file.name}",
+                        file=sys.stderr,
+                    )
+            output_file.close()
 
     sys.exit(exit_status)
 
