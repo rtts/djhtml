@@ -4,7 +4,7 @@ from .lines import Line
 from .tokens import Token
 
 
-class DjText:
+class DjTXT:
     """
     Mode for indenting text files that contain Django template tags.
     Also serves as the base class for the other modes:
@@ -228,7 +228,7 @@ class DjText:
         return tokens[:-1]
 
 
-class DjHTML(DjText):
+class DjHTML(DjTXT):
     """
     This mode is the entrypoint of DjHTML. Usage:
 
@@ -242,7 +242,7 @@ class DjHTML(DjText):
     PRE = r"<pre.*?</pre>"
     TAG = r"<.*?>"
     TOKEN = re.compile(
-        DjText.TOKEN.pattern + f"|({STYLE})|({SCRIPT})|({COMMENT})|({PRE})|({TAG})"
+        DjTXT.TOKEN.pattern + f"|({STYLE})|({SCRIPT})|({COMMENT})|({PRE})|({TAG})"
     )
 
     IGNORE_TAGS = [
@@ -331,7 +331,7 @@ class DjHTML(DjText):
         return tokens
 
 
-class DjCSS(DjText):
+class DjCSS(DjTXT):
     """
     Mode for indenting CSS.
 
@@ -340,9 +340,7 @@ class DjCSS(DjText):
     BRACES = r"[\{\}]"
     COMMENT = r"/\*.*?\*/"
     LINECOMMENT = r"//.*?\n"
-    TOKEN = re.compile(
-        DjText.TOKEN.pattern + f"|({LINECOMMENT})|({COMMENT})|({BRACES})"
-    )
+    TOKEN = re.compile(DjTXT.TOKEN.pattern + f"|({LINECOMMENT})|({COMMENT})|({BRACES})")
 
     def indent(self, tabwidth):
         lines = self.tokenize(tabwidth)
@@ -365,7 +363,7 @@ class DjCSS(DjText):
         return super().create_tokens(raw_token, line_nr)
 
 
-class DjJS(DjText):
+class DjJS(DjTXT):
     """
     Mode for indenting Javascript.
 
@@ -378,7 +376,7 @@ class DjJS(DjText):
     COMMENT = DjCSS.COMMENT
     LINECOMMENT = DjCSS.LINECOMMENT
     TOKEN = re.compile(
-        DjText.TOKEN.pattern
+        DjTXT.TOKEN.pattern
         + f"|({LINECOMMENT})|({COMMENT})|({STRING1})|({STRING2})|({STRING3})|({BRACES})"
     )
 
@@ -418,7 +416,7 @@ class DjJS(DjText):
         return super().create_tokens(raw_token, line_nr)
 
 
-class DjNoOp(DjText):
+class DjNoOp(DjTXT):
     """
     Mode that does nothing. Used for comments.
 

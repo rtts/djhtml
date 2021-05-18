@@ -20,13 +20,22 @@ def verify_changed(source, result):
 
 def main():
     """
-    The ``djhtml'' command-line tool. Typical usage:
+    Entrypoint for all 4 command-line tools. Typical usage:
 
         $ djhtml -i file1.html file2.html
 
     """
+    Mode = modes.DjHTML
+    if sys.argv[0].endswith("djtxt"):
+        Mode = modes.DjTXT
+    if sys.argv[0].endswith("djcss"):
+        Mode = modes.DjCSS
+    if sys.argv[0].endswith("djjs"):
+        Mode = modes.DjJS
+
+    exit_status = 0
+
     parser = argparse.ArgumentParser(
-        prog="djhtml",
         description=(
             "DjHTML is a Django template indenter that works with mixed"
             " HTML/CSS/Javascript templates. It works similar to other"
@@ -47,8 +56,7 @@ def main():
         "-o",
         "--output-file",
         metavar="filename",
-        type=argparse.FileType("w"),
-        default=sys.stdout,
+        default="-",
         help="output filename",
     )
     parser.add_argument(
@@ -67,14 +75,6 @@ def main():
     if len(args.input_files) > 1 and not args.in_place:
         sys.exit("Will not modify files in-place without -i option")
 
-    exit_status = 0
-
-    Mode = modes.DjHTML
-    if sys.argv[0].endswith("djcss"):
-        Mode = modes.DjCSS
-    if sys.argv[0].endswith("djjs"):
-        Mode = modes.DjCSS
-
     for input_file in args.input_files:
         source = input_file.read()
         try:
@@ -91,17 +91,25 @@ def main():
             input_file.close()
 
         if verify_changed(source, result):
-            output_file = (
-                open(input_file.name, "w") if args.in_place else args.output_file
+            if args.in_place:
+                output_file = open(input_file.name, "w")
+            elif args.output_file != "-":
+                output_file = open(args.output_file, "w")
+            else:
+                if not args.quiet:
+                    print(result, end="")
+                sys.exit(0)  # YOLO
+            output_file.write(result)
+            if not args.quiet:
+                print(
+                    f"Successfully wrote {output_file.name}",
+                    file=sys.stderr,
+                )
+        elif not args.quiet:
+            print(
+                f"{input_file.name} is perfectly indented!",
+                file=sys.stderr,
             )
-            if not (args.quiet and output_file.name == "<stdout>"):
-                output_file.write(result)
-                if not output_file.name == "<stdout>":
-                    print(
-                        f"Successfully reformatted {output_file.name}",
-                        file=sys.stderr,
-                    )
-            output_file.close()
 
     sys.exit(exit_status)
 
