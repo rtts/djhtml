@@ -339,7 +339,10 @@ class DjCSS(DjText):
 
     BRACES = r"[\{\}]"
     COMMENT = r"/\*.*?\*/"
-    TOKEN = re.compile(DjText.TOKEN.pattern + f"|({BRACES})|({COMMENT})")
+    LINECOMMENT = r"//.*?\n"
+    TOKEN = re.compile(
+        DjText.TOKEN.pattern + f"|({LINECOMMENT})|({COMMENT})|({BRACES})"
+    )
 
     def indent(self, tabwidth):
         lines = self.tokenize(tabwidth)
@@ -373,9 +376,10 @@ class DjJS(DjText):
     STRING3 = r"`.*?`"
     BRACES = r"[\{\[\(\)\]\}]"
     COMMENT = DjCSS.COMMENT
+    LINECOMMENT = DjCSS.LINECOMMENT
     TOKEN = re.compile(
         DjText.TOKEN.pattern
-        + f"|({STRING1})|({STRING2})|({STRING3})|({BRACES})|({COMMENT})"
+        + f"|({LINECOMMENT})|({COMMENT})|({STRING1})|({STRING2})|({STRING3})|({BRACES})"
     )
 
     def indent(self, tabwidth):

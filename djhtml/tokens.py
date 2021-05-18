@@ -24,11 +24,11 @@ class Token:
         def __repr__(self):
             return f"({self.__class__.__name__}:{repr(self.text)})"
 
-    class Newline(_Base):
+    class Newline:
         newline = True
 
-        def __init__(self):
-            pass
+        def __repr__(self):
+            return "(Newline)"
 
     class Recursive(_Base):
         recursive = True
