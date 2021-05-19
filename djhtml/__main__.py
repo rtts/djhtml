@@ -67,6 +67,7 @@ def main():
         default=[sys.stdin],
         help="input filenames",
     )
+    parser.add_argument("-d", "--debug", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
 
     if args.in_place and args.input_files[0].name == "<stdin>":
@@ -77,7 +78,12 @@ def main():
 
     for input_file in args.input_files:
         source = input_file.read()
+
         try:
+            if args.debug:
+                for line in Mode(source).tokenize(args.tabwidth):
+                    print(repr(line.tokens))
+                sys.exit()
             result = Mode(source).indent(args.tabwidth)
         except SyntaxError as e:
             if not args.quiet:
