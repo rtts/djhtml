@@ -1,4 +1,11 @@
 {% comment %}
 This is some text
 {% endcomment %}
+{% comment %}
+This is some text
+{% endcomment %}
+<style>
+a {
+}
+</style>
 </li>
