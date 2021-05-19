@@ -37,6 +37,11 @@ class TestSuite(unittest.TestCase):
             actual_error = str(err).strip()
             actual_output = None
 
+        if actual_error is not None and expected_error is None:
+            self.fail(f"Unexpected error: {actual_error}")
+        if actual_error is None and expected_error is not None:
+            self.fail(f"Unexpected success, expected error: {expected_error}")
+
         self.assertEqual(actual_output, expected_output)
         self.assertEqual(actual_error, expected_error)
 
