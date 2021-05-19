@@ -151,6 +151,9 @@ class DjTXT:
                 elif token:
                     line.append(token)
                     line_nr += token.text.count("\n")
+                    if token.recursive:
+                        # Recursive tokens report 1 more line than they should.
+                        line_nr -= 1
 
         # At the end of my money, I always have a little bit of month
         # left over - Loesje
