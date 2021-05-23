@@ -7,16 +7,12 @@ class Token:
     class _Base:
         indents = False
         dedents = False
-        newline = False
-        recursive = False
+        ignore = False
 
-        def __init__(self, text, line_nr, expect=""):
+        def __init__(self, text, kind="", offset=0):
             self.text = text
-            self.line_nr = line_nr
-            self.expect = expect
-
-        def __bool__(self):
-            return bool(self.text)
+            self.kind = kind
+            self.offset = offset
 
         def __str__(self):
             return self.text
@@ -24,22 +20,11 @@ class Token:
         def __repr__(self):
             return f"({self.__class__.__name__}:{repr(self.text)})"
 
-    class Newline:
-        newline = True
-
-        def __repr__(self):
-            return "(Newline)"
-
-    class Recursive(_Base):
-        recursive = True
-
-        def __init__(self, text, line_nr, mode):
-            self.text = text
-            self.line_nr = line_nr
-            self.mode = mode
-
     class Text(_Base):
         pass
+
+    class Ignore(_Base):
+        ignore = True
 
     class Open(_Base):
         indents = True

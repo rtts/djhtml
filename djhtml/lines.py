@@ -4,48 +4,47 @@ class Line:
 
     """
 
-    def __init__(self, tabwidth):
-        self.tabwidth = tabwidth
+    def __init__(self, line_nr=1):
+        self.line_nr = line_nr
         self.tokens = []
         self.level = 0
-        self.offset = 0
 
     def append(self, token):
         """
         Append tokens to the line.
 
         """
+        token.line_nr = self.line_nr
         self.tokens.append(token)
 
     @property
     def text(self):
         """
-        The raw, unindented text of this line.
+        The unindented text of this line without leading/trailing spaces.
 
         """
         return "".join([str(token) for token in self.tokens]).strip()
 
-    def __str__(self):
+    def indent(self, tabwidth):
         """
         The final, indented text of this line. Make sure to set the level
-        and optionally offset before calling ``str()``.
+        and optionally offset before calling this method.
 
         """
-        # If the line consists of a recursive token, return its
-        # rendered output instead.
-        if self.tokens and self.tokens[0].recursive:
-            token = self.tokens[0]
-            return token.mode(token.text, self.level, token.line_nr).indent(
-                self.tabwidth
-            )
-
-        if self.text:
-            spaces = self.tabwidth * self.level + self.offset
-            return " " * spaces + self.text + "\n"
+        if self.tokens:
+            if self.tokens[0].ignore:
+                return "".join([str(token) for token in self.tokens]) + "\n"
+            elif self.text:
+                offset = self.tokens[0].offset * tabwidth
+                spaces = tabwidth * self.level + offset
+                return " " * spaces + self.text + "\n"
         return "\n"
 
     def __repr__(self):
         return repr(self.tokens)
 
     def __bool__(self):
-        return bool(self.text)
+        return bool(self.tokens and self.text)
+
+    def __next__(self):
+        return Line(line_nr=self.line_nr + 1)

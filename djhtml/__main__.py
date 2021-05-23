@@ -81,14 +81,14 @@ def main():
 
         try:
             if args.debug:
-                for line in Mode(source).tokenize(args.tabwidth):
-                    print(repr(line.tokens))
+                print(Mode(source).debug())
                 sys.exit()
             result = Mode(source).indent(args.tabwidth)
         except SyntaxError as e:
             if not args.quiet:
                 print(
-                    f"Error in {input_file.name}: {str(e) or e.__class__.__name__}",
+                    f"Syntax error in {input_file.name}:"
+                    f" {str(e) or e.__class__.__name__}",
                     file=sys.stderr,
                 )
             exit_status = 1
@@ -112,10 +112,13 @@ def main():
                     file=sys.stderr,
                 )
         elif not args.quiet:
-            print(
-                f"{input_file.name} is perfectly indented!",
-                file=sys.stderr,
-            )
+            if not args.in_place and args.output_file == "-":
+                print(result, end="")
+            else:
+                print(
+                    f"{input_file.name} is perfectly indented!",
+                    file=sys.stderr,
+                )
 
     sys.exit(exit_status)
 
