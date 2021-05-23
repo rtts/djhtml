@@ -53,27 +53,33 @@ class DjTXT:
                 opening_token = None
 
                 # When a dedenting token is found, match it with the
-                # token at the top of the stack. If there is no match,
-                # raise a syntax error.
+                # token at the top of the stack.
                 if token.dedents:
                     try:
-                        opening_token = stack.pop()
-                        assert token.kind == opening_token.kind
-                    except (IndexError, AssertionError):
-                        raise SyntaxError(
-                            f"illegal closing “{token.text}” on line {line.line_nr}"
-                        )
+                        if stack[-1].kind == token.kind:
+                            opening_token = stack.pop()
+                        elif token.kind == "django":
+                            opening_token = stack.pop()
+                            while opening_token.kind != token.kind:
+                                opening_token = stack.pop()
+                        elif first_token:
+                            # This closing token could not be matched.
+                            # Instead of erroring out, set the line level
+                            # to what it would have been with a
+                            # regular text token.
+                            line.level = stack[-1].level + 1
+                    except IndexError:
+                        line.level = 0
 
                     # If this dedenting token is the first in line,
-                    # it's somewhat special: the line level will be
-                    # set to to the line level of the corresponding
-                    # opening token.
-                    if first_token:
+                    # set the line level to the line level of the
+                    # corresponding opening token.
+                    if first_token and opening_token:
                         line.level = opening_token.level
 
                 # If the first token is not a dedenting token, the
-                # line level will one higher than that of the token at
-                # the top of the stack.
+                # line level will be one higher than that of the token
+                # at the top of the stack.
                 elif first_token:
                     line.level = stack[-1].level + 1 if stack else 0
 
@@ -89,11 +95,6 @@ class DjTXT:
                 if token.text.strip():
                     first_token = False
 
-        # Ensure the stack is empty at the end of the run.
-        if stack:
-            token = stack.pop()
-            raise SyntaxError(f"unclosed “{token.text}” on line {token.line_nr}")
-
     def tokenize(self):
         """
         Split the source text into tokens and place them on lines.
@@ -106,8 +107,8 @@ class DjTXT:
 
         while True:
             try:
-                # Split the source at the first instance of one of the
-                # current mode's raw tokens.
+                # Split the source at the first occurence of one of
+                # the current mode's raw tokens.
                 head, raw_token, tail = mode.token_re.split(src, maxsplit=1)
 
             except ValueError:
@@ -160,6 +161,12 @@ class DjTXT:
             elif name.startswith("end"):
                 token = Token.Close(raw_token, kind)
 
+        elif tag := re.match(r"{# *(\w+:\w+).*?#}", raw_token):
+            name = tag.group(1)
+            if name == "fmt:off":
+                token = Token.Open(raw_token, kind)
+                self.next_mode = Comment(r"\{% *fmt:on.*?%\}", self, kind)
+
         return token
 
     def debug(self):
@@ -188,7 +195,6 @@ class DjHTML(DjTXT):
     ]
 
     IGNORE_TAGS = [
-        "doctype",
         "area",
         "base",
         "br",
@@ -308,7 +314,7 @@ class DjJS(DjTXT):
         return super().create_token(raw_token, src)
 
 
-# The following are "special" modes with slightly different constructors.
+# The following are "special" modes with different constructors.
 
 
 class Comment(DjTXT):

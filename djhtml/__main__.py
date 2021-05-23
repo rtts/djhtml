@@ -41,8 +41,7 @@ def main():
             " HTML/CSS/Javascript templates. It works similar to other"
             " code-formatting tools such as Black. The goal is to correctly"
             " indent already well-structured templates but not to fix broken"
-            " ones. A non-zero exit status indicates that a template could not"
-            " be indented."
+            " ones."
         ),
     )
     parser.add_argument(
@@ -77,7 +76,11 @@ def main():
         sys.exit("Will not modify files in-place without -i option")
 
     for input_file in args.input_files:
-        source = input_file.read()
+        try:
+            source = input_file.read()
+        except Exception:
+            print(f"\nFatal error while processing {input_file.name}\n")
+            raise
 
         try:
             if args.debug:
@@ -93,6 +96,14 @@ def main():
                 )
             exit_status = 1
             continue
+        except Exception:
+            print(
+                f"\nFatal error while processing {input_file.name}\n\n"
+                "    If you have time and are using the latest version, we\n"
+                "    would very much appreciate if you opened an issue on\n"
+                "    https://github.com/rtts/djhtml/issues\n"
+            )
+            raise
         finally:
             input_file.close()
 

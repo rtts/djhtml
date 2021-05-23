@@ -1,0 +1,74 @@
+<!-- Common pattern in django templates -->
+{% if %}
+    <a>
+{% else %}
+    <a>
+{% endif %}
+.
+{% if %}
+    </a>
+{% endif %}
+
+
+<!-- The literal example from issue #17 -->
+{% if some_condition %}
+    <a href="{% url some_url">
+{% elif some_other_condition %}
+    <a href="{% url some_other_url">
+{% endif %}
+[a bunch of details go here]
+{% if end_tag_needed %}</a>{% endif %}
+
+
+<!-- Deep nestings should be instantly dedented -->
+{% block %}
+    <a>
+        <a>
+            <a>
+                <a>
+                    <a>
+{% endblock %}
+{% for x in [1,2,3,4,5] %}
+    </a>
+{% endfor %}
+
+
+<!-- The most complicated example I can think of -->
+<body>
+    {% if %}
+        <div>
+    {% else %}
+        <span>{% if %}<blink>
+            {% block %}
+                </blink>
+            {% endblock %}{% endif %}
+    {% endif %}
+    .
+    {% if %}
+        </span>
+    {% else %}
+        </div>
+    {% endif %}
+</body>
+
+
+<!-- Inside <script> tag -->
+<script>
+    {% if jquery %}
+        $(function() {
+    {% else %}
+        document.addEventListener("DOMContentLoaded", function(event) {
+    {% endif %}
+    console.log("Time to ditch jQuery!")
+    });
+</script>
+
+
+<!-- Manually disable formatting -->
+<body>
+    {# fmt:off #}
+     ,-._|\
+    /     .\
+    \_,--._/
+    {# fmt:on #}
+</body>

@@ -4,8 +4,8 @@ class Line:
 
     """
 
-    def __init__(self, line_nr=1):
-        self.line_nr = line_nr
+    def __init__(self, nr=1):
+        self.nr = nr
         self.tokens = []
         self.level = 0
 
@@ -14,7 +14,7 @@ class Line:
         Append tokens to the line.
 
         """
-        token.line_nr = self.line_nr
+        token.line_nr = self.nr
         self.tokens.append(token)
 
     @property
@@ -47,4 +47,4 @@ class Line:
         return bool(self.tokens and self.text)
 
     def __next__(self):
-        return Line(line_nr=self.line_nr + 1)
+        return Line(nr=self.nr + 1)
