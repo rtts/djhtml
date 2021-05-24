@@ -1,5 +1,4 @@
-DjHTML
-======
+# DjHTML
 
 ***A pure-Python Django template indenter without dependencies.***
 
@@ -11,47 +10,48 @@ not to fix broken ones.
 
 For example, DjHTML converts the following badly indented template:
 
-    <!doctype html>
-    <html>
-        <body>
-            {% block content %}
-            Hello, world!
-            {% endblock %}
-            <script>
-                $(function() {
-                console.log('Hi mom!');
-                });
-            </script>
-        </body>
-    </html>
+```jinja
+<!doctype html>
+<html>
+    <body>
+        {% block content %}
+        Hello, world!
+        {% endblock %}
+        <script>
+            $(function() {
+            console.log('Hi mom!');
+            });
+        </script>
+    </body>
+</html>
+```
 
 To the following:
 
-    <!doctype html>
-    <html>
-        <body>
-            {% block content %}
-                Hello, world!
-            {% endblock %}
-            <script>
-                $(function() {
-                    console.log('Hi mom!');
-                });
-            </script>
-        </body>
-    </html>
+```jinja
+<!doctype html>
+<html>
+    <body>
+        {% block content %}
+            Hello, world!
+        {% endblock %}
+        <script>
+            $(function() {
+                console.log('Hi mom!');
+            });
+        </script>
+    </body>
+</html>
+```
 
-
-Installation
-------------
+## Installation
 
 You can install DjHTML with the following command:
 
     $ pip install djhtml
 
 
-Usage
------
+## Usage
 
 After installation you can indent Django templates using the `djhtml`
 command. The default is to write the indented output to standard out.
@@ -69,8 +69,7 @@ The other available options are:
 - `-o` / `--output-file`: write output to specified file
 
 
-Pre-commit configuration
-------------------------
+## pre-commit configuration
 
 You can use DjHTML as a [pre-commit](https://pre-commit.com/) hook to
 automatically indent your Django templates upon each commit.
@@ -82,11 +81,13 @@ First, install pre-commit:
 
 Then, add the following to your `.pre-commit-config.yaml`:
 
-    repos:
-    - repo: https://github.com/rtts/djhtml
-      rev: main
-      hooks:
-      - id: djhtml
+```yml
+repos:
+- repo: https://github.com/rtts/djhtml
+  rev: main
+  hooks:
+    - id: djhtml
+```
 
 Finally, run the following command:
 
