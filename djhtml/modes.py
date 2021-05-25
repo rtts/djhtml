@@ -150,7 +150,9 @@ class DjTXT:
         self.next_mode = self
         token = Token.Text(raw_token)
 
-        if tag := re.match(r"{% *(\w+).*?%}", raw_token):
+        tag = re.match(r"{% *(\w+).*?%}", raw_token)
+        comment = None if tag else re.match(r"{# *(\w+:\w+).*?#}", raw_token)
+        if tag:
             name = tag.group(1)
             if name == "comment":
                 token = Token.Open(raw_token, kind)
@@ -162,8 +164,8 @@ class DjTXT:
             elif name.startswith("end"):
                 token = Token.Close(raw_token, kind)
 
-        elif tag := re.match(r"{# *(\w+:\w+).*?#}", raw_token):
-            name = tag.group(1)
+        elif comment:
+            name = comment.group(1)
             if name == "fmt:off":
                 token = Token.Open(raw_token, kind)
                 self.next_mode = Comment(r"\{% *fmt:on.*?%\}", self, kind)
@@ -219,7 +221,8 @@ class DjHTML(DjTXT):
         self.next_mode = self
 
         if raw_token == "<":
-            if tag := re.match(r"(\w+)[ >\n]", src):
+            tag = re.match(r"(\w+)[ >\n]", src)
+            if tag:
                 token = Token.Open(raw_token, kind)
                 self.next_mode = InsideHTMLTag(tag[1], self)
             else:
@@ -235,7 +238,8 @@ class DjHTML(DjTXT):
             return Token.Open(raw_token, kind)
 
         if raw_token.startswith("</"):
-            if tagname := re.search(r"\w+", raw_token):
+            tagname = re.search(r"\w+", raw_token)
+            if tagname:
                 if tagname[0].lower() in self.IGNORE_TAGS:
                     return Token.Text(raw_token)
             return Token.Close(raw_token, kind)
