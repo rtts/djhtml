@@ -11,11 +11,14 @@ def verify_changed(source, result):
 
     """
     output_lines = result.split("\n")
+    changed = False
     for line_nr, line in enumerate(source.split("\n")):
         if line != output_lines[line_nr]:
-            return True
+            changed = True
         if line.strip() != output_lines[line_nr].strip():
             raise IndentationError("Non-whitespace changes detected. Core dumped.")
+
+    return changed
 
 
 def main():
