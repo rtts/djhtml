@@ -59,28 +59,29 @@ def main():
         help="output filename",
     )
     parser.add_argument(
-        "input_files",
+        "input_filenames",
         metavar="filenames",
         nargs="*",
-        type=argparse.FileType("r"),
-        default=[sys.stdin],
+        default=["-"],
         help="input filenames",
     )
     parser.add_argument("-d", "--debug", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
 
-    if args.in_place and args.input_files[0].name == "<stdin>":
+    if args.in_place and "-" in args.input_filenames:
         sys.exit("I’m sorry Dave, I’m afraid I can’t do that")
 
-    if len(args.input_files) > 1 and not args.in_place:
+    if len(args.input_filenames) > 1 and not args.in_place:
         sys.exit("Will not modify files in-place without -i option")
 
-    for input_file in args.input_files:
+    for input_filename in args.input_filenames:
         try:
+            input_file = open(input_filename, "r")
             source = input_file.read()
-        except Exception:
-            print(f"\nFatal error while processing {input_file.name}\n")
-            raise
+        except Exception as e:
+            exit_status = 1
+            print(f"Error opening {input_filename}: {e}", file=sys.stderr)
+            continue
 
         try:
             if args.debug:
@@ -101,7 +102,8 @@ def main():
                 f"\nFatal error while processing {input_file.name}\n\n"
                 "    If you have time and are using the latest version, we\n"
                 "    would very much appreciate if you opened an issue on\n"
-                "    https://github.com/rtts/djhtml/issues\n"
+                "    https://github.com/rtts/djhtml/issues\n",
+                file=sys.stderr,
             )
             raise
         finally:
