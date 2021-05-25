@@ -95,7 +95,7 @@ You can exclude specific lines from being processed with the
      /     .\
      \_,--._/
     {# fmt:on #}
-/>
+"/>
 ```
 
 Contents inside `<pre>`, `/* ... */` and `{% comment %}` tags are also
