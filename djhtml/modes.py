@@ -218,10 +218,9 @@ class DjHTML(DjTXT):
         self.next_mode = self
 
         if raw_token == "<":
-            if tag := re.match(r"\w+", src):
-                tagname = tag[0]
+            if tag := re.match(r"(\w+)[ >\n]", src):
                 token = Token.Open(raw_token, kind)
-                self.next_mode = InsideHTMLTag(tagname, self)
+                self.next_mode = InsideHTMLTag(tag[1], self)
             else:
                 token = Token.Text(raw_token)
             return token
