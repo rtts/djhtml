@@ -37,6 +37,8 @@ def main():
         Mode = modes.DjJS
 
     exit_status = 0
+    changed_files = 0
+    unchanged_files = 0
 
     parser = argparse.ArgumentParser(
         description=(
@@ -78,14 +80,19 @@ def main():
         sys.exit("Will not modify files in-place without -i option")
 
     for input_filename in args.input_filenames:
+
+        # Read input file
         try:
-            input_file = open(input_filename, "r")
+            input_file = (
+                sys.stdin if input_filename == "-" else open(input_filename, "r")
+            )
             source = input_file.read()
         except Exception as e:
             exit_status = 1
             print(f"Error opening {input_filename}: {e}", file=sys.stderr)
             continue
 
+        # Indent input file
         try:
             if args.debug:
                 print(Mode(source).debug())
@@ -112,27 +119,52 @@ def main():
         finally:
             input_file.close()
 
-        if verify_changed(source, result):
+        changed = verify_changed(source, result)
+
+        # Print to stdout and exit
+        if not args.in_place and args.output_file == "-":
+            if not args.quiet:
+                print(result, end="")
+            sys.exit(0)  # YOLO
+
+        # Write output file and increment counter
+        if changed:
+            changed_files += 1
             if args.in_place:
                 output_file = open(input_file.name, "w")
-            elif args.output_file != "-":
-                output_file = open(args.output_file, "w")
             else:
-                if not args.quiet:
-                    print(result, end="")
-                sys.exit(0)  # YOLO
+                output_file = open(args.output_file, "w")
             output_file.write(result)
             if not args.quiet:
                 print(
-                    f"Successfully wrote {output_file.name}",
+                    f"reindented {output_file.name}",
                     file=sys.stderr,
                 )
-        elif not args.quiet:
-            if not args.in_place and args.output_file == "-":
-                print(result, end="")
+        else:
+            unchanged_files += 1
+
+    # Print final summary
+    if not args.quiet:
+        print("All done! \\o/", file=sys.stderr)
+        if changed_files:
+            if unchanged_files:
+                print(
+                    f"{changed_files} template{'s' if changed_files > 1 else ''}"
+                    f" reindented, {unchanged_files}"
+                    f" template{'s' if unchanged_files > 1 else ''} left unchanged.",
+                    file=sys.stderr,
+                )
             else:
                 print(
-                    f"{input_file.name} is perfectly indented!",
+                    f"{changed_files} template{'s' if changed_files > 1 else ''}"
+                    " reindented.",
+                    file=sys.stderr,
+                )
+        else:
+            if unchanged_files:
+                print(
+                    f"{unchanged_files} template{'s' if unchanged_files > 1 else ''}"
+                    " left unchanged.",
                     file=sys.stderr,
                 )
 
