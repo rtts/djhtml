@@ -82,3 +82,11 @@
     {% endblock %}
     1
 {% endwith %}
+
+
+<!-- Django tag {% plural %} should cause dedent-and-indent. #24 -->
+{% blocktrans count count=queryset.count %}
+    There is 1 item.
+{% plural %}
+    There are {{ count }} items.
+{% endblocktrans %}

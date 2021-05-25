@@ -25,6 +25,7 @@ class DjTXT:
         "elif",
         "else",
         "empty",
+        "plural",
     ]
 
     def __init__(self, source="", return_mode=None):
