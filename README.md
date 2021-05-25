@@ -82,6 +82,60 @@ The installer also installs the `djtxt`, `djcss`, and `djjs` commands
 for indenting plain text, CSS and Javascript source files,
 respectively.
 
+
+## `fmt:off` and `fmt:on`
+
+You can exclude specific lines from being processed with the
+`{# fmt:off #}` and `{# fmt:on #}` operators:
+
+```jinja
+<div class="
+    {# fmt:off #}
+      ,-._|\
+     /     .\
+     \_,--._/
+    {# fmt:on #}
+/>
+```
+
+Contents inside `<pre>`, `/* ... */` and `{% comment %}` tags are also
+ignored (depending on the current mode).
+
+
+## Modes
+
+The indenter operates in one of three different modes:
+
+- DjHTML mode: the default mode. Invoked by using the `djhtml` command
+  or the pre-commit hook.
+
+- DjCSS mode. Will be entered when a `<style>` tag is encountered in
+  DjHTML mode. It can also be invoked directly with the command
+  `djcss`.
+
+- DjJS mode. Will be entered when a `<script>` tag is encountered in
+  DjHTML mode. It can also be invoked directly with the command
+  `djjs`.
+
+In all modes, Django and Jinja2 template tags are recognized and
+indented correctly. Template tags have "indentation precedence" over
+other tags, as in the following example:
+
+```jinja
+<a>
+    <a>
+        <a>
+            <a>
+                <a>
+{% for x in [1,2,3,4,5] %}
+    </a>
+{% endfor %}
+```
+
+Without this precedence, the `{% for %}` tag would have been nested 5
+levels deep, beneath the `<a>` tag.
+
+
 ## pre-commit configuration
 
 You can use DjHTML as a [pre-commit](https://pre-commit.com/) hook to
