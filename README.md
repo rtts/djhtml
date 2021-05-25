@@ -117,24 +117,6 @@ The indenter operates in one of three different modes:
   DjHTML mode. It can also be invoked directly with the command
   `djjs`.
 
-In all modes, Django and Jinja2 template tags are recognized and
-indented correctly. Template tags have "indentation precedence" over
-other tags, as in the following example:
-
-```jinja
-<a>
-    <a>
-        <a>
-            <a>
-                <a>
-{% for x in [1,2,3,4,5] %}
-    </a>
-{% endfor %}
-```
-
-Without this precedence, the `{% for %}` tag would have been nested 5
-levels deep, beneath the `<a>` tag.
-
 
 ## pre-commit configuration
 
