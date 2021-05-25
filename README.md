@@ -116,3 +116,26 @@ happy, please do the following:
    formatted, and an example of how it should have been formatted.
 
 Your feedback for improving DjHTML is very welcome!
+
+## Development
+
+Use your preferred system for setting up a virtualenv, docker environment,
+or whatever else, then run the following:
+
+```sh
+python -m pip install -e .[dev]
+pre-commit install --install-hooks
+```
+
+Tests can then be run quickly in that environment:
+
+```sh
+python -m unittest discover -v
+```
+
+Or testing in all available supported environments and linting can be run
+with [`nox`](https://nox.thea.codes):
+
+```sh
+nox
+```
