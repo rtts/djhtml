@@ -42,11 +42,11 @@ def main():
 
     parser = argparse.ArgumentParser(
         description=(
-            "DjHTML is a Django template indenter that works with mixed"
-            " HTML/CSS/Javascript templates. It works similar to other"
-            " code-formatting tools such as Black. The goal is to correctly"
-            " indent already well-structured templates but not to fix broken"
-            " ones."
+            "DjHTML is a fully automatic template indenter that works with mixed"
+            " HTML/CSS/Javascript templates that contain Django or Jinja2 template"
+            " tags. It works similar to other code-formatting tools such as Black and"
+            " interoperates nicely with pre-commit. More information at"
+            " https://github.com/rtts/djhtml"
         ),
     )
     parser.add_argument(
