@@ -84,9 +84,15 @@ Yuck!
 {% endwith %}
 
 
-<!-- Django tag {% plural %} should cause dedent-and-indent. #24 -->
+<!-- Django tag {% plural %} should cause dedent-and-indent. Issue #24 -->
 {% blocktrans count count=queryset.count %}
 There is 1 item.
 {% plural %}
 There are {{ count }} items.
 {% endblocktrans %}
+
+
+<!-- Template tag directly following tag name. Issue #30 -->
+<a{% if %} class=""{% endif %}>
+Click here!
+</a>
