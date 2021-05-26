@@ -68,8 +68,7 @@ option:
 
     $ djhtml -i template.html
     reindented template.html
-    All done! \o/
-    1 template reindented.
+    1 template has been reindented.
 
 The other available options are:
 
@@ -152,8 +151,7 @@ following output:
     - files were modified by this hook
 
     reindented template.html
-    All done! \o/
-    1 template reindented.
+    1 template has been reindented.
 
 To inspect the changes that were made, use `git diff`. If you are
 happy with the changes, you can commit them normally. If you are not
