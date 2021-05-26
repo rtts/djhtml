@@ -36,9 +36,9 @@ def main():
     if sys.argv[0].endswith("djjs"):
         Mode = modes.DjJS
 
-    exit_status = 0
     changed_files = 0
     unchanged_files = 0
+    problematic_files = 0
 
     parser = argparse.ArgumentParser(
         description=(
@@ -88,8 +88,9 @@ def main():
             )
             source = input_file.read()
         except Exception as e:
-            exit_status = 1
-            print(f"Error opening {input_filename}: {e}", file=sys.stderr)
+            problematic_files += 1
+            if not args.quiet:
+                print(f"Error opening {input_filename}: {e}", file=sys.stderr)
             continue
 
         # Indent input file
@@ -99,13 +100,13 @@ def main():
                 sys.exit()
             result = Mode(source).indent(args.tabwidth)
         except SyntaxError as e:
+            problematic_files += 1
             if not args.quiet:
                 print(
                     f"Syntax error in {input_file.name}:"
                     f" {str(e) or e.__class__.__name__}",
                     file=sys.stderr,
                 )
-            exit_status = 1
             continue
         except Exception:
             print(
@@ -127,14 +128,19 @@ def main():
                 print(result, end="")
             sys.exit(0)  # YOLO
 
-        # Write output file and increment counter
+        # Write output file
         if changed:
-            changed_files += 1
-            if args.in_place:
-                output_file = open(input_file.name, "w")
-            else:
-                output_file = open(args.output_file, "w")
-            output_file.write(result)
+            output_filename = input_file.name if args.in_place else args.output_file
+            try:
+                output_file = open(output_filename, "w")
+                output_file.write(result)
+                output_file.close()
+                changed_files += 1
+            except Exception as e:
+                problematic_files += 1
+                if not args.quiet:
+                    print(f"Error writing {output_filename}: {e}", file=sys.stderr)
+                continue
             if not args.quiet:
                 print(
                     f"reindented {output_file.name}",
@@ -145,30 +151,28 @@ def main():
 
     # Print final summary
     if not args.quiet:
-        print("All done! \\o/", file=sys.stderr)
-        if changed_files:
-            if unchanged_files:
-                print(
-                    f"{changed_files} template{'s' if changed_files > 1 else ''}"
-                    f" reindented, {unchanged_files}"
-                    f" template{'s' if unchanged_files > 1 else ''} left unchanged.",
-                    file=sys.stderr,
-                )
-            else:
-                print(
-                    f"{changed_files} template{'s' if changed_files > 1 else ''}"
-                    " reindented.",
-                    file=sys.stderr,
-                )
-        else:
-            if unchanged_files:
-                print(
-                    f"{unchanged_files} template{'s' if unchanged_files > 1 else ''}"
-                    " left unchanged.",
-                    file=sys.stderr,
-                )
+        s = "s" if changed_files != 1 else ""
+        have = "have" if s else "has"
+        print(
+            f"{changed_files} template{s} {have} been reindented.",
+            file=sys.stderr,
+        )
+        if unchanged_files:
+            s = "s" if unchanged_files != 1 else ""
+            were = "were" if s else "was"
+            print(
+                f"{unchanged_files} template{s} {were} already perfect!",
+                file=sys.stderr,
+            )
+        if problematic_files:
+            s = "s" if problematic_files != 1 else ""
+            print(
+                f"{problematic_files} template{s} could not be processed due to an"
+                " error.",
+                file=sys.stderr,
+            )
 
-    sys.exit(exit_status)
+    sys.exit(problematic_files)
 
 
 if __name__ == "__main__":
