@@ -1,11 +1,11 @@
 # DjHTML
 
-***A pure-Python Django/Jinja2 template indenter without dependencies.***
+***A pure-Python Django/Jinja template indenter without dependencies.***
 
 DjHTML is a fully automatic template indenter that works with mixed
 HTML/CSS/Javascript templates that contain
 [Django](https://docs.djangoproject.com/en/stable/ref/templates/language/)
-or [Jinja2](https://jinja.palletsprojects.com/templates/) template
+or [Jinja](https://jinja.palletsprojects.com/templates/) template
 tags. It works similar to other code-formatting tools such as
 [Black](https://github.com/psf/black) and interoperates nicely with
 [pre-commit](https://pre-commit.com/).
@@ -85,10 +85,6 @@ All available options are:
 - `-q` / `--quiet`: don't print any output
 - `-t` / `--tabwidth`: set tabwidth (default is 4)
 - `-o` / `--output-file`: write output to specified file
-
-The installer also installs the `djtxt`, `djcss`, and `djjs` commands
-for indenting plain text, CSS and Javascript source files,
-respectively.
 
 
 ## `fmt:off` and `fmt:on`
