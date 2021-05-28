@@ -70,9 +70,18 @@ option:
     reindented template.html
     1 template has been reindented.
 
-The other available options are:
+Normally, the exit status of 0 means everything went well, regardless
+of whether any files were changed. If any errors were encountered, the
+exit status indicated the number of problematic files. However, when
+the option `-c` / `--check` is used, the exit status is the number of
+files that would have changed, but no changes are actually made.
+
+All available options are:
 
 - `-h` / `--help`: show overview of available options
+- `-i` / `--in-place`: modify files in-place
+- `-c` / `--check`: don't modify files; the exit status is the number
+    of files that would have changed
 - `-q` / `--quiet`: don't print any output
 - `-t` / `--tabwidth`: set tabwidth (default is 4)
 - `-o` / `--output-file`: write output to specified file

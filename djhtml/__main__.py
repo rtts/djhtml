@@ -45,16 +45,22 @@ def main():
             "DjHTML is a fully automatic template indenter that works with mixed"
             " HTML/CSS/Javascript templates that contain Django or Jinja2 template"
             " tags. It works similar to other code-formatting tools such as Black and"
-            " interoperates nicely with pre-commit. More information at"
+            " interoperates nicely with pre-commit. Full documentation can be found at"
             " https://github.com/rtts/djhtml"
         ),
     )
     parser.add_argument(
         "-i", "--in-place", action="store_true", help="modify files in-place"
     )
+    parser.add_argument("-c", "--check", action="store_true", help="don't modify files")
     parser.add_argument("-q", "--quiet", action="store_true", help="be quiet")
     parser.add_argument(
-        "-t", "--tabwidth", metavar="N", type=int, default=4, help="tab width"
+        "-t",
+        "--tabwidth",
+        metavar="N",
+        type=int,
+        default=4,
+        help="tabwidth (default is 4)",
     )
     parser.add_argument(
         "-o",
@@ -76,7 +82,7 @@ def main():
     if args.in_place and "-" in args.input_filenames:
         sys.exit("I’m sorry Dave, I’m afraid I can’t do that")
 
-    if len(args.input_filenames) > 1 and not args.in_place:
+    if len(args.input_filenames) > 1 and not args.in_place and not args.check:
         sys.exit("Will not modify files in-place without -i option")
 
     for input_filename in args.input_filenames:
@@ -123,13 +129,15 @@ def main():
         changed = verify_changed(source, result)
 
         # Print to stdout and exit
-        if not args.in_place and args.output_file == "-":
+        if not args.in_place and not args.check and args.output_file == "-":
             if not args.quiet:
                 print(result, end="")
-            sys.exit(0)  # YOLO
+            sys.exit(1 if args.check and changed else 0)
 
         # Write output file
-        if changed:
+        if changed and args.check:
+            changed_files += 1
+        elif changed:
             output_filename = input_file.name if args.in_place else args.output_file
             try:
                 output_file = open(output_filename, "w")
@@ -152,7 +160,7 @@ def main():
     # Print final summary
     if not args.quiet:
         s = "s" if changed_files != 1 else ""
-        have = "have" if s else "has"
+        have = "would have" if args.check else "have" if s else "has"
         print(
             f"{changed_files} template{s} {have} been reindented.",
             file=sys.stderr,
@@ -172,7 +180,7 @@ def main():
                 file=sys.stderr,
             )
 
-    sys.exit(problematic_files)
+    sys.exit(changed_files if args.check else problematic_files)
 
 
 if __name__ == "__main__":
