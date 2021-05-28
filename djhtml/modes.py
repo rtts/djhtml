@@ -168,7 +168,7 @@ class DjTXT:
             name = comment.group(1)
             if name == "fmt:off":
                 token = Token.Open(raw_token, kind)
-                self.next_mode = Comment(r"\{% *fmt:on.*?%\}", self, kind)
+                self.next_mode = Comment(r"\{# *fmt:on.*?#\}", self, kind)
 
         return token
 
