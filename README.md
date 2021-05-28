@@ -102,8 +102,9 @@ You can exclude specific lines from being processed with the
 "/>
 ```
 
-Contents inside `<pre>`, `/* ... */` and `{% comment %}` tags are also
-ignored (depending on the current mode).
+Contents inside `<pre> ... </pre>`, `<!-- ... --->`, `/* ... */`, and
+`{% comment %} ... {% endcomment %}` tags are also ignored (depending
+on the current mode).
 
 
 ## Modes
