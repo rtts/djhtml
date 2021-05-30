@@ -96,3 +96,11 @@ There are {{ count }} items.
 <a{% if %} class=""{% endif %}>
 Click here!
 </a>
+
+
+<!-- Multiline Jinja comment -->
+{#
+      ,-._|\
+     /     .\
+     \_,--._/
+#}

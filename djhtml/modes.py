@@ -19,6 +19,7 @@ class DjTXT:
         r"\n",
         r"{%.*?%}",
         r"{#.*?#}",
+        r"{#",
     ]
 
     DJANGO_OPENING_AND_CLOSING_TAGS = [
@@ -151,7 +152,6 @@ class DjTXT:
         token = Token.Text(raw_token)
 
         tag = re.match(r"{% *(\w+).*?%}", raw_token)
-        comment = None if tag else re.match(r"{# *(\w+:\w+).*?#}", raw_token)
         if tag:
             name = tag.group(1)
             if name == "comment":
@@ -163,12 +163,17 @@ class DjTXT:
                 token = Token.OpenAndClose(raw_token, kind)
             elif name.startswith("end"):
                 token = Token.Close(raw_token, kind)
+            return token
 
-        elif comment:
-            name = comment.group(1)
-            if name == "fmt:off":
-                token = Token.Open(raw_token, kind)
-                self.next_mode = Comment(r"\{# *fmt:on.*?#\}", self, kind)
+        comment = re.match(r"{# *(\w+:\w+).*?#}", raw_token)
+        if comment and comment[1] == "fmt:off":
+            token = Token.Open(raw_token, kind)
+            self.next_mode = Comment(r"\{# *fmt:on.*?#\}", self, kind)
+            return token
+
+        if raw_token == "{#":
+            token = Token.Open(raw_token, kind)
+            self.next_mode = Comment(r"#\}", self, kind)
 
         return token
 
