@@ -1,0 +1,8 @@
+<div>
+{% set "five" = 5 %}
+Five is {{ five }}
+{% set blockdata %}
+Contents
+{% endset %}
+Contents of block is block
+</div>

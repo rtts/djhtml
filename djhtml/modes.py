@@ -3,6 +3,18 @@ import re
 from .lines import Line
 from .tokens import Token
 
+# Some Django/Jinja tags can be ambiguous whether they're part of a block or not.
+# For instance, the Jinja `set` tag which can be used as
+#     {% set variablename = value %}
+# But also as
+#     {% set variablename %}
+#         Contents of this block is stored
+#     {% endset %}
+AMBIGUOUS_BLOCK_TAGS = {
+    # token_name: regex_if_not_block
+    "set": " = ",
+}
+
 
 class DjTXT:
     """
@@ -141,6 +153,13 @@ class DjTXT:
             # Set the new source to the old tail for the next iteration.
             src = tail
 
+    def _has_closing_token(self, name, raw_token, src):
+        if not re.search(f"{{% *end{name}.*?%}}", src):
+            return False
+        if (regex := AMBIGUOUS_BLOCK_TAGS.get(name)) and re.search(regex, raw_token):
+            return False
+        return True
+
     def create_token(self, raw_token, src):
         """
         Given a raw token string, return a single token (and internally
@@ -157,7 +176,7 @@ class DjTXT:
             if name == "comment":
                 token = Token.Open(raw_token, kind)
                 self.next_mode = Comment(r"\{% *endcomment.*?%\}", self, kind)
-            elif re.search(f"{{% *end{name}.*?%}}", src):
+            elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, kind)
             elif name in self.DJANGO_OPENING_AND_CLOSING_TAGS:
                 token = Token.OpenAndClose(raw_token, kind)
