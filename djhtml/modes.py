@@ -29,6 +29,11 @@ class DjTXT:
         "plural",
     ]
 
+    AMBIGUOUS_BLOCK_TAGS = {
+        # token_name: regex_if_not_block
+        "set": " = ",
+    }
+
     def __init__(self, source="", return_mode=None):
         self.source = source
         self.return_mode = return_mode or self
@@ -157,7 +162,7 @@ class DjTXT:
             if name == "comment":
                 token = Token.Open(raw_token, kind)
                 self.next_mode = Comment(r"\{% *endcomment.*?%\}", self, kind)
-            elif re.search(f"{{% *end{name}.*?%}}", src):
+            elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, kind)
             elif name in self.DJANGO_OPENING_AND_CLOSING_TAGS:
                 token = Token.OpenAndClose(raw_token, kind)
@@ -176,6 +181,14 @@ class DjTXT:
             self.next_mode = Comment(r"#\}", self, kind)
 
         return token
+
+    def _has_closing_token(self, name, raw_token, src):
+        if not re.search(f"{{% *end{name}.*?%}}", src):
+            return False
+        regex = self.AMBIGUOUS_BLOCK_TAGS.get(name)
+        if regex and re.search(regex, raw_token):
+            return False
+        return True
 
     def debug(self):
         self.tokenize()
