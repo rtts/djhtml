@@ -104,3 +104,19 @@ Click here!
      /     .\
      \_,--._/
 #}
+
+
+<!-- video tag from django-embed-video #32 -->
+{% video form.instance.video as my_video %}
+{% video my_video '360 x 200' %}
+{% endvideo %}
+
+
+<!-- match all characters of tag #38 -->
+{% component_block "instruction" border_top=True header="Login" %}
+{% slot "body" %}
+{% with "login --token="|add:token as content %}
+{% component "copy_field" field_selector="token-field" content=content %}
+{% endwith %}
+{% endslot %}
+{% endcomponent_block %}

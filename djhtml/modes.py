@@ -30,8 +30,9 @@ class DjTXT:
     ]
 
     AMBIGUOUS_BLOCK_TAGS = {
-        # token_name: regex_if_not_block
-        "set": " = ",
+        # token_name: (regex_if_block, regex_if_not_block)
+        "set": (None, " = "),
+        "video": (" as ", None),
     }
 
     def __init__(self, source="", return_mode=None):
@@ -183,11 +184,14 @@ class DjTXT:
         return token
 
     def _has_closing_token(self, name, raw_token, src):
-        if not re.search(f"{{% *end{name}.*?%}}", src):
+        if not re.search(f"{{% *end{name}( .*?|)%}}", src):
             return False
         regex = self.AMBIGUOUS_BLOCK_TAGS.get(name)
-        if regex and re.search(regex, raw_token):
-            return False
+        if regex:
+            if regex[0]:
+                return re.search(regex[0], raw_token)
+            if regex[1]:
+                return not re.search(regex[1], raw_token)
         return True
 
     def debug(self):
