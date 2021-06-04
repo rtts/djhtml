@@ -29,35 +29,15 @@ console.log("Hi mom!");
 </script>
 
 
-<!-- Django comment -->
+<!-- Multiline comment -->
 {% comment %}
-                   .------.
-                   ||'||||'|
-                  ,|| -.._ |
-                  \|`.-. .-.
-                   | `-'A'-'
-                   | ( --.`|
-                  _|`.`___,'__   ____
-              _,-'_| _   _/   /';    `.
-           ,-/ / '     /     ; ;       )
-          / (__()     /     (__()\     |
-         |  (__()    |   __(__() : `--  \
-         \ _'__()`------'  (__() \       :
-         ;  |\/|           |\/;\  \      |
-         ;  '__'           |__| `. ;.__, (
-         :   \ /           ;\;|   /  \    ,--.
-         `._ \__\          ;__|  ;   |   /`.,-`.
-         /   |\/|          |\;|  |   :   \`/`.__\
-        ;    |__|___ __ ___|__;__|    \   `\`/`._`.
-       ,     |\;|   _\/_   |\/|\/|     \  _|`,`.`.,--.
-       ;    ;|__|___\/\/___|__|__|      `( ,/ /.`/`.,-`.
-           ; |   ,   | |   `.    |       \`.;//;`\`/ ,. \
-       jrei                  `-  |        `::_;   `\ `' /
-                                                    `--'
+      ,-._|\
+     /     .\
+     \_,--._/
 {% endcomment %}
 
 
-<!-- Django comment with optional comment -->
+<!-- Multiline comment with optional comment -->
 {% comment "Yo dawg" %}
             I heard you like comments
 {% endcomment %}
@@ -84,7 +64,7 @@ Yuck!
 {% endwith %}
 
 
-<!-- Django tag {% plural %} should cause dedent-and-indent. Issue #24 -->
+<!-- Tags that both dedent and indent -->
 {% blocktrans count count=queryset.count %}
 There is 1 item.
 {% plural %}
@@ -92,27 +72,29 @@ There are {{ count }} items.
 {% endblocktrans %}
 
 
-<!-- Template tag directly following tag name. Issue #30 -->
+<!-- None of this should be indented -->
+{% if %}
+{% elif %}
+{% else %}
+{% endif %}
+{% for %}
+{% empty %}
+{% endfor %}
+
+
+<!-- Template tag directly following tag name -->
 <a{% if %} class=""{% endif %}>
 Click here!
 </a>
 
 
-<!-- Multiline Jinja comment -->
-{#
-      ,-._|\
-     /     .\
-     \_,--._/
-#}
-
-
-<!-- video tag from django-embed-video #32 -->
+<!-- Ambiguous video tag from django-embed-video -->
 {% video form.instance.video as my_video %}
 {% video my_video '360 x 200' %}
 {% endvideo %}
 
 
-<!-- match all characters of tag #38 -->
+<!-- Match the tag, the whole tag, and nothing but the tag -->
 {% component_block "instruction" border_top=True header="Login" %}
 {% slot "body" %}
 {% with "login --token="|add:token as content %}

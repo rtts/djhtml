@@ -6,7 +6,7 @@ from .tokens import Token
 
 class DjTXT:
     """
-    Mode for indenting text files that contain Django template tags.
+    Mode for indenting text files that contain Django/Jinja template tags.
     Also serves as the base class for the other modes:
 
     - DjHTML
@@ -17,23 +17,24 @@ class DjTXT:
 
     RAW_TOKENS = [
         r"\n",
-        r"{%.*?%}",
+        r"{%[-\+]?.*?[-\+]?%}",
         r"{#.*?#}",
         r"{#",
     ]
-
-    DJANGO_OPENING_AND_CLOSING_TAGS = [
+    OPENING_AND_CLOSING_TAGS = [
         "elif",
         "else",
         "empty",
         "plural",
     ]
-
     AMBIGUOUS_BLOCK_TAGS = {
         # token_name: (regex_if_block, regex_if_not_block)
         "set": (None, " = "),
         "video": (" as ", None),
     }
+    FMT_ON = r"{# fmt:on #}"
+    FMT_OFF = r"{# fmt:off #}"
+    OPENING_TAG = r"{%[-\+]? *(\w+).*?[-\+]?%}"
 
     def __init__(self, source="", return_mode=None):
         self.source = source
@@ -157,7 +158,7 @@ class DjTXT:
         self.next_mode = self
         token = Token.Text(raw_token)
 
-        tag = re.match(r"{% *(\w+).*?%}", raw_token)
+        tag = re.match(self.OPENING_TAG, raw_token)
         if tag:
             name = tag.group(1)
             if name == "comment":
@@ -165,16 +166,15 @@ class DjTXT:
                 self.next_mode = Comment(r"\{% *endcomment.*?%\}", self, kind)
             elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, kind)
-            elif name in self.DJANGO_OPENING_AND_CLOSING_TAGS:
+            elif name in self.OPENING_AND_CLOSING_TAGS:
                 token = Token.OpenAndClose(raw_token, kind)
             elif name.startswith("end"):
                 token = Token.Close(raw_token, kind)
             return token
 
-        comment = re.match(r"{# *(\w+:\w+).*?#}", raw_token)
-        if comment and comment[1] == "fmt:off":
+        if re.match(self.FMT_OFF, raw_token):
             token = Token.Open(raw_token, kind)
-            self.next_mode = Comment(r"\{# *fmt:on.*?#\}", self, kind)
+            self.next_mode = Comment(self.FMT_ON, self, kind)
             return token
 
         if raw_token == "{#":

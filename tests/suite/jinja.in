@@ -1,0 +1,35 @@
+<!-- Multiline comment -->
+{#
+      ,-._|\
+     /     .\
+     \_,--._/
+#}
+
+
+<!-- Whitespace control -->
+<div>
+{%+ if something %}
+yay
+{% endif %}
+</div>
+
+<div>
+{% if something +%}
+yay
+{% endif %}
+</div>
+
+{% for item in seq -%}
+    {{ item }}
+{%- endfor %}
+
+
+<!-- Set assignment -->
+<div>
+{% set "five" = 5 %}
+Five is {{ five }}
+{% set blockdata %}
+Contents
+{% endset %}
+Contents of block is block
+</div>
