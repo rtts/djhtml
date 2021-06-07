@@ -163,7 +163,7 @@ class DjTXT:
             name = tag.group(1)
             if name == "comment":
                 token = Token.Open(raw_token, kind)
-                self.next_mode = Comment(r"\{% *endcomment.*?%\}", self, kind)
+                self.next_mode = Comment(r"{%[-\+]? *endcomment(?: .*?|)%}", self, kind)
             elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, kind)
             elif name in self.OPENING_AND_CLOSING_TAGS:
@@ -184,7 +184,7 @@ class DjTXT:
         return token
 
     def _has_closing_token(self, name, raw_token, src):
-        if not re.search(f"{{% *end{name}( .*?|)%}}", src):
+        if not re.search(f"{{%[-\\+]? *end{name}(?: .*?|)%}}", src):
             return False
         regex = self.AMBIGUOUS_BLOCK_TAGS.get(name)
         if regex:

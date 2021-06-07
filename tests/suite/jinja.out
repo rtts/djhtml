@@ -20,8 +20,12 @@
 </div>
 
 {% for item in seq -%}
-{{ item }}
+    {{ item }}
 {%- endfor %}
+
+{%- macro render_currency(currency, amount) -%}
+    {{ amount }}
+{%- endmacro -%}
 
 
 <!-- Set assignment -->
