@@ -37,6 +37,14 @@
 {% endcomment %}
 
 
+<!-- Verbatim block -->
+{% verbatim %}
+      ,-._|\
+     /     .\
+     \_,--._/
+{% endverbatim %}
+
+
 <!-- Multiline comment with optional comment -->
 {% comment "Yo dawg" %}
             I heard you like comments

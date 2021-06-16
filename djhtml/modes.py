@@ -161,9 +161,11 @@ class DjTXT:
         tag = re.match(self.OPENING_TAG, raw_token)
         if tag:
             name = tag.group(1)
-            if name == "comment":
+            if name in ["comment", "verbatim", "raw"]:
                 token = Token.Open(raw_token, kind)
-                self.next_mode = Comment(r"{%[-\+]? *endcomment(?: .*?|)%}", self, kind)
+                self.next_mode = Comment(
+                    r"{%[-\+]? *end" + name + r"(?: .*?|)%}", self, kind
+                )
             elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, kind)
             elif name in self.OPENING_AND_CLOSING_TAGS:

@@ -6,6 +6,14 @@
 #}
 
 
+<!-- Raw block -->
+{% raw %}
+      ,-._|\
+     /     .\
+     \_,--._/
+{% endraw %}
+
+
 <!-- Whitespace control -->
 <div>
 {%+ if something %}
