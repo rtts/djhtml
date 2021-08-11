@@ -62,9 +62,9 @@ Install DjHTML with the following command:
 ## Usage
 
 After installation you can indent templates using the `djhtml`
-command. The default is to write the indented output to standard out.
-To modify the source file in-place, use the `-i` / `--in-place`
-option:
+command. The default is to read from standard in and to write the
+indented output to standard out.To modify the source file in-place,
+use the `-i` / `--in-place` option and specify a filename:
 
     $ djhtml -i template.html
     reindented template.html
