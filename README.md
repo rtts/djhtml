@@ -138,7 +138,7 @@ Then, add the following to your `.pre-commit-config.yaml`:
 ```yml
 repos:
 - repo: https://github.com/rtts/djhtml
-  rev: main
+  rev: ''  # use the latest tag on GitHub
   hooks:
     - id: djhtml
 ```
