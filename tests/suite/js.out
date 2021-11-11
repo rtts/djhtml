@@ -101,3 +101,18 @@ return 42;
     // Jeez
 </script>
 
+
+<!-- Switch case indentation -->
+<script>
+    const mode = 'approved'
+    switch (mode) {
+    case 'approved':
+        console.log('Approved');
+        break;
+    case 'rejected':
+        console.log('Rejected');
+        break;
+    default:
+        console.log('Default');
+    }
+</script>

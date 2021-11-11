@@ -335,6 +335,10 @@ class DjJS(DjTXT):
             return Token.Open(raw_token, kind)
         if raw_token.lstrip().startswith("."):
             return Token.Text(raw_token, offset=1)
+        if raw_token.lstrip().startswith("case "):
+            return Token.OpenAndClose(raw_token, kind)
+        if raw_token.lstrip().startswith("default:"):
+            return Token.OpenAndClose(raw_token, kind)
         if raw_token == "</script>":
             self.next_mode = self.return_mode
             return Token.Close(raw_token, "html")
