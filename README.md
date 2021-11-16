@@ -138,7 +138,7 @@ Then, add the following to your `.pre-commit-config.yaml`:
 ```yml
 repos:
 - repo: https://github.com/rtts/djhtml
-  rev: ''  # use the latest tag on GitHub
+  rev: 'main'  # replace with the latest tag on GitHub
   hooks:
     - id: djhtml
 ```
@@ -146,6 +146,9 @@ repos:
 Finally, run the following command:
 
     $ pre-commit autoupdate
+
+This will automatically replace `main` with the latest tag on GitHub,
+[as recommended by pre-commit](https://pre-commit.com/#using-the-latest-version-for-a-repository).
 
 Now when you run `git commit` you will see something like the
 following output:
