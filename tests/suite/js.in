@@ -102,6 +102,19 @@ doStuff();
 </script>
 
 
+<!-- If elif else -->
+<script>
+let time = 10;
+if (time < 10) {
+console.log("Good morning");
+} else if (time < 20) {
+console.log("Good day");
+} else {
+console.log("Good evening");
+}
+</script>
+
+
 <!-- Switch case indentation -->
 <script>
 const mode = 'approved'
@@ -115,4 +128,74 @@ break;
 default:
 console.log('Default');
 }
+
+switch (mode) {
+case 'approved':
+console.log('Approved');
+break;
+default:
+console.log('Default');
+case 'rejected':
+console.log('Rejected');
+break;
+}
+
+switch (mode) {
+case 'approved':
+case 'rejected':
+case 'invalid':
+console.log('Not default');
+break;
+default:
+console.log('Default');
+}
+
+switch (mode) {
+case 'approved': {
+console.log('Approved');
+break;
+}
+case 'rejected': {
+console.log('Rejected');
+break;
+}
+default: {
+console.log('Default');
+}
+}
+</script>
+
+
+<!-- Switch complex example -->
+<script>
+var year = 2016;
+var month = 2;
+var dayCount;
+switch (month) {
+case 1:
+case 3:
+case 5:
+case 7:
+case 8:
+case 10:
+case 12:
+dayCount = 31;
+break;
+case 4:
+case 6:
+case 9:
+case 11:
+dayCount = 30;
+break;
+case 2:
+if (((year % 4 == 0) && !(year % 100 == 0)) || (year % 400 == 0)) {
+dayCount = 29;
+} else {
+dayCount = 28;
+}
+break;
+default:
+dayCount = -1; // invalid month
+}
+console.log(dayCount);
 </script>

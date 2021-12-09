@@ -65,7 +65,7 @@ class DjTXT:
                 # token at the top of the stack.
                 if token.dedents:
                     try:
-                        if stack[-1].kind == token.kind:
+                        if stack[-1].kind == token.kind and stack[-1].is_hard == token.is_hard:
                             opening_token = stack.pop()
                         elif token.kind == "django":
                             opening_token = stack.pop()
@@ -76,6 +76,14 @@ class DjTXT:
                             # Instead of erroring out, set the line level
                             # to what it would have been with a
                             # regular text token.
+
+                            # If there is any OpenHard token in the set and current token is CloseHard
+                            # then let's move back to OpenHard.
+                            if token.is_hard and any(t.is_hard and t.indents for t in stack):
+                                s = stack.pop()
+                                while not s.is_hard or not s.indents:
+                                    s = stack.pop()
+
                             line.level = stack[-1].level + 1
                     except IndexError:
                         line.level = 0
@@ -116,7 +124,7 @@ class DjTXT:
 
         while True:
             try:
-                # Split the source at the first occurence of one of
+                # Split the source at the first occurrence of one of
                 # the current mode's raw tokens.
                 head, raw_token, tail = mode.token_re.split(src, maxsplit=1)
 
@@ -322,6 +330,20 @@ class DjJS(DjTXT):
     def create_token(self, raw_token, src):
         kind = "javascript"
         self.next_mode = self
+
+        if raw_token.lstrip().startswith("switch"):
+            self.hard_indent = True
+            self.opened_brackets = 0
+
+        if getattr(self, 'hard_indent', False):
+            if raw_token == "{":
+                self.opened_brackets += 1
+                if self.opened_brackets == 1:
+                    return Token.OpenHard(raw_token, kind)
+            if raw_token == "}":
+                if self.opened_brackets == 1:
+                    return Token.CloseHard(raw_token, kind)
+                self.opened_brackets -= 1
 
         if raw_token in "{[(":
             return Token.Open(raw_token, kind)
