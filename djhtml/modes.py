@@ -331,17 +331,19 @@ class DjJS(DjTXT):
         kind = "javascript"
         self.next_mode = self
 
-        if raw_token.lstrip().startswith("switch"):
-            self.hard_indent = True
-            self.opened_brackets = 0
+        if raw_token.strip() == "switch":
+            self.hard_indents = getattr(self, 'hard_indents', 0) + 1
+            self.opened_brackets = getattr(self, 'opened_brackets', 0)
 
-        if getattr(self, 'hard_indent', False):
+        if getattr(self, 'hard_indents', 0):
             if raw_token == "{":
                 self.opened_brackets += 1
-                if self.opened_brackets == 1:
+                if self.opened_brackets == self.hard_indents:
                     return Token.OpenHard(raw_token, kind)
-            if raw_token == "}":
-                if self.opened_brackets == 1:
+            elif raw_token == "}":
+                if self.opened_brackets == self.hard_indents:
+                    self.opened_brackets -= 1
+                    self.hard_indents -= 1
                     return Token.CloseHard(raw_token, kind)
                 self.opened_brackets -= 1
 

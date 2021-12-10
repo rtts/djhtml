@@ -173,17 +173,18 @@ var month = 2;
 var dayCount;
 switch (month) {
 case 1:
-case 3:
-case 5:
-case 7:
-case 8:
-case 10:
+function switchFoo () {
+console.log("Foo");
+}
+switchFoo();
 case 12:
 dayCount = 31;
 break;
 case 4:
-case 6:
-case 9:
+switch(boo){
+case 1:
+case 2:
+}
 case 11:
 dayCount = 30;
 break;
@@ -198,4 +199,33 @@ default:
 dayCount = -1; // invalid month
 }
 console.log(dayCount);
+</script>
+
+
+<!-- Nested switch statements -->
+<script>
+switch (a) {
+case b:
+switch (c) {
+case d:
+switch (e) {
+default:
+}
+}
+}
+</script>
+
+
+<!-- Things that look like switch, but aren't -->
+<script>
+function switchBoo () {
+console.log("Boo");
+}
+switchBoo();
+
+let arr = [
+'switch',
+'default:',
+'case ',
+];
 </script>
