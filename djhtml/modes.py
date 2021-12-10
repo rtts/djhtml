@@ -327,15 +327,19 @@ class DjJS(DjTXT):
         r"/\*",
     ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hard_indents = 0
+        self.opened_brackets = 0
+
     def create_token(self, raw_token, src):
         kind = "javascript"
         self.next_mode = self
 
         if raw_token.strip() == "switch":
-            self.hard_indents = getattr(self, 'hard_indents', 0) + 1
-            self.opened_brackets = getattr(self, 'opened_brackets', 0)
+            self.hard_indents = self.hard_indents + 1
 
-        if getattr(self, 'hard_indents', 0):
+        if self.hard_indents:
             if raw_token == "{":
                 self.opened_brackets += 1
                 if self.opened_brackets == self.hard_indents:
