@@ -8,6 +8,7 @@ class Token:
         indents = False
         dedents = False
         ignore = False
+        is_hard = False
 
         def __init__(self, text, kind="", offset=0):
             self.text = text
@@ -29,8 +30,14 @@ class Token:
     class Open(_Base):
         indents = True
 
+    class OpenHard(Open):
+        is_hard = True
+
     class Close(_Base):
         dedents = True
+
+    class CloseHard(Close):
+        is_hard = True
 
     class OpenAndClose(_Base):
         indents = True
