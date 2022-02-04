@@ -63,7 +63,7 @@ Install DjHTML with the following command:
 
 After installation you can indent templates using the `djhtml`
 command. The default is to read from standard in and to write the
-indented output to standard out.To modify the source file in-place,
+indented output to standard out. To modify the source file in-place,
 use the `-i` / `--in-place` option and specify a filename:
 
     $ djhtml -i template.html
@@ -125,8 +125,9 @@ The indenter operates in one of three different modes:
 
 ## pre-commit configuration
 
-You can use DjHTML as a [pre-commit](https://pre-commit.com/) hook to
-automatically indent your templates upon each commit.
+The best way to use DjHTML is as a [pre-commit](https://pre-commit.com/)
+hook, so all your HTML, CSS and JavaScript files will automatically be
+indented upon every commit.
 
 First, install pre-commit:
 
@@ -141,13 +142,30 @@ repos:
   rev: 'main'  # replace with the latest tag on GitHub
   hooks:
     - id: djhtml
+    - id: djcss
+    - id: djjs
 ```
 
-Finally, run the following command:
+If you want to limit the files these hooks operate on, you can use the
+`files`, `types`, and `exclude` arguments. For example:
 
-    $ pre-commit autoupdate
+```yml
+- repo: https://github.com/rtts/djhtml
+  rev: 'main'  # replace with the latest tag on GitHub
+  hooks:
+    - id: djhtml
+      # Indent only HTML files in template directories
+      files: .*/templates/.*\.html$
+    - id: djcss
+      # Run this hook on both CSS and SCSS files
+      types: [css, scss]
+    - id: djjs
+      # Exclude JavaScript files in vendor directories
+      exclude: .*/vendor/.*
+```
 
-This will automatically replace `main` with the latest tag on GitHub,
+Finally, run `pre-commit autoupdate` to automatically replace `main`
+with the latest tag on GitHub,
 [as recommended by pre-commit](https://pre-commit.com/#using-the-latest-version-for-a-repository).
 
 Now when you run `git commit` you will see something like the
@@ -155,7 +173,7 @@ following output:
 
     $ git commit
 
-    djhtml...................................................................Failed
+    DjHTML...................................................................Failed
     - hook id: djhtml
     - files were modified by this hook
 
