@@ -1,7 +1,25 @@
 - id: djhtml
-  name: djhtml
+  name: DjHTML
   entry: djhtml -i
   types: [html]
+  language: python
+  language_version: python3
+  require_serial: true
+  minimum_pre_commit_version: '2.9.0'
+
+- id: djcss
+  name: DjCSS
+  entry: djcss -i
+  types: [css]
+  language: python
+  language_version: python3
+  require_serial: true
+  minimum_pre_commit_version: '2.9.0'
+
+- id: djjs
+  name: DjJS
+  entry: djjs -i
+  types: [javascript]
   language: python
   language_version: python3
   require_serial: true
