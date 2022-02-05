@@ -199,7 +199,7 @@ Use your preferred system for setting up a virtualenv, docker environment,
 or whatever else, then run the following:
 
 ```sh
-python -m pip install -e .[dev]
+python -m pip install -e '.[dev]'
 pre-commit install --install-hooks
 ```
 
