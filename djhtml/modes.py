@@ -292,10 +292,7 @@ class DjCSS(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [
         r"</style>",
-        r"{",
-        r"}",
-        r"\(",
-        r"\)",
+        r"[\{\(\)\}]",
         r"/\*",
     ]
 
