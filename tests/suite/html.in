@@ -134,6 +134,38 @@ text
 </div>
 
 
+<!-- Multiline elements -->
+<img src="/some/long/path"
+id="1">
+<blockquote class="dishy"
+id="2" />
+<a href="/some/long/path"
+id="3"></a>
+
+<!-- Multiline attribute values -->
+<svg width="325" height="325" xmlns="http://www.w3.org/2000/svg">
+<path
+d="M 80 80
+A 45 45, 0, 0, 0, 125 125
+L 125 80 Z"
+fill="green"
+/>
+<path
+d="
+M 80 80
+A 45 45, 0, 0, 0, 125 125
+L 125 80 Z
+"
+fill="green"
+/>
+<path d="M 80 80
+A 45 45, 0, 0, 0, 125 125
+L 125 80 Z"
+fill="green"
+/>
+</svg>
+
+
 <!-- Remove trailing spaces -->
 Invisible spaces here:   
 

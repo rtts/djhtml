@@ -407,17 +407,24 @@ class InsideHTMLTag(DjTXT):
 
     """
 
-    RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>"]
+    RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>", r'"']
 
     def __init__(self, tagname, return_mode):
         self.tagname = tagname
         self.return_mode = return_mode
         self.token_re = compile_re(self.RAW_TOKENS)
+        self.inside_attr = False
 
     def create_token(self, raw_token, src):
         kind = "html"
         self.next_mode = self
 
+        if raw_token == '"':
+            if self.inside_attr:
+                self.inside_attr = False
+                return Token.Close(raw_token, kind)
+            self.inside_attr = True
+            return Token.Open(raw_token, kind)
         if raw_token == "/>":
             self.next_mode = self.return_mode
             return Token.Close(raw_token, kind)
