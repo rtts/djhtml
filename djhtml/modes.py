@@ -65,7 +65,10 @@ class DjTXT:
                 # token at the top of the stack.
                 if token.dedents:
                     try:
-                        if stack[-1].kind == token.kind and stack[-1].is_hard == token.is_hard:
+                        if (
+                            stack[-1].kind == token.kind
+                            and stack[-1].is_hard == token.is_hard
+                        ):
                             opening_token = stack.pop()
                         elif token.kind == "django":
                             opening_token = stack.pop()
@@ -79,7 +82,9 @@ class DjTXT:
 
                             # If there is any OpenHard token in the set and current token is CloseHard
                             # then let's move back to OpenHard.
-                            if token.is_hard and any(t.is_hard and t.indents for t in stack):
+                            if token.is_hard and any(
+                                t.is_hard and t.indents for t in stack
+                            ):
                                 s = stack.pop()
                                 while not s.is_hard or not s.indents:
                                     s = stack.pop()
@@ -287,8 +292,7 @@ class DjCSS(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [
         r"</style>",
-        r"{",
-        r"}",
+        r"[\{\(\)\}]",
         r"/\*",
     ]
 
@@ -296,9 +300,9 @@ class DjCSS(DjTXT):
         kind = "css"
         self.next_mode = self
 
-        if raw_token == "{":
+        if raw_token in "{(":
             return Token.Open(raw_token, kind)
-        if raw_token == "}":
+        if raw_token in "})":
             return Token.Close(raw_token, kind)
         if raw_token == "/*":
             self.next_mode = Comment(r"\*/", self, kind)

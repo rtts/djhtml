@@ -24,3 +24,15 @@ text-decoration: underline;
      *
      */
 </style>
+
+
+<!-- CSS Function -->
+<style>
+#gradient {
+background: linear-gradient(
+to top left,
+rgba(204,0,0,1),
+rgba(204,0,0,0)
+);
+}
+</style>
