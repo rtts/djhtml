@@ -158,7 +158,8 @@ If you want to limit the files these hooks operate on, you can use the
       files: .*/templates/.*\.html$
     - id: djcss
       # Run this hook on both CSS and SCSS files
-      types: [css, scss]
+      types: []
+      types_or: [css, scss]
     - id: djjs
       # Exclude JavaScript files in vendor directories
       exclude: .*/vendor/.*
