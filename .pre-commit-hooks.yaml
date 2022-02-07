@@ -10,7 +10,7 @@
 - id: djcss
   name: DjCSS
   entry: djcss -i
-  types: [css]
+  types_or: [css, scss]
   language: python
   language_version: python3
   require_serial: true
