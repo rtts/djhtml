@@ -146,8 +146,9 @@ repos:
     - id: djjs
 ```
 
-If you want to limit the files these hooks operate on, you can use the
-`files`, `types`, and `exclude` arguments. For example:
+If you want to limit the files these hooks operate on, you can use
+[pre-commit mechanisms for filtering](https://pre-commit.com/#filtering-files-with-types).
+For example:
 
 ```yml
 - repo: https://github.com/rtts/djhtml
@@ -157,8 +158,8 @@ If you want to limit the files these hooks operate on, you can use the
       # Indent only HTML files in template directories
       files: .*/templates/.*\.html$
     - id: djcss
-      # Run this hook on both CSS and SCSS files
-      types: [css, scss]
+      # Run this hook only on SCSS files (CSS and SCSS is the default)
+      types: [scss]
     - id: djjs
       # Exclude JavaScript files in vendor directories
       exclude: .*/vendor/.*
