@@ -1,6 +1,14 @@
 class Line:
     """
-    A single output line including the final newline.
+    A single output line not including the final newline.
+
+    The behavior regarding final newlines has changed between DjHTML
+    v1.4.14 and v1.5.0. It used to always append the final newline,
+    but now this will only happen when the source file already
+    contains a final newline.
+
+    See https://github.com/rtts/djhtml/issues/56 for the discussion
+    that led to this change.
 
     """
 
@@ -33,12 +41,12 @@ class Line:
         """
         if self.tokens:
             if self.tokens[0].ignore:
-                return "".join([str(token) for token in self.tokens]) + "\n"
+                return "".join([str(token) for token in self.tokens])
             elif self.text:
                 offset = self.tokens[0].offset * tabwidth
                 spaces = tabwidth * self.level + offset
-                return " " * spaces + self.text + "\n"
-        return "\n"
+                return " " * spaces + self.text
+        return ""
 
     def __repr__(self):
         return repr(self.tokens)

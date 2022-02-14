@@ -170,4 +170,4 @@ fill="green"
 Invisible spaces here:   
 
 
-<!-- Append final newline -->
+<!-- Do not append final newline -->

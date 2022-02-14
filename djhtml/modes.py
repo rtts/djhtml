@@ -48,7 +48,7 @@ class DjTXT:
         """
         self.tokenize()
         self.parse()
-        return "".join([line.indent(tabwidth) for line in self.lines])
+        return "\n".join([line.indent(tabwidth) for line in self.lines])
 
     def parse(self):
         """
@@ -137,8 +137,7 @@ class DjTXT:
                 # We've reached the final line!
                 if src:
                     line.append(mode.create_token(src, ""))
-                if line:
-                    self.lines.append(line)
+                self.lines.append(line)
                 break
 
             if head:
