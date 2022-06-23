@@ -424,10 +424,10 @@ class InsideHTMLTag(DjTXT):
                 return Token.Close(raw_token, kind)
             self.inside_attr = True
             return Token.Open(raw_token, kind)
-        if raw_token == "/>":
+        elif not self.inside_attr and raw_token == "/>":
             self.next_mode = self.return_mode
             return Token.Close(raw_token, kind)
-        elif raw_token == ">":
+        elif not self.inside_attr and raw_token == ">":
             if self.tagname.lower() in DjHTML.IGNORE_TAGS:
                 self.next_mode = self.return_mode
                 return Token.Close(raw_token, kind)
