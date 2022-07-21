@@ -1,5 +1,6 @@
 import argparse
 import sys
+from pathlib import Path
 
 from . import modes
 
@@ -28,13 +29,17 @@ def main():
         $ djhtml -i file1.html file2.html
 
     """
+    target_extension = ".html"
     Mode = modes.DjHTML
     if sys.argv[0].endswith("djtxt"):
         Mode = modes.DjTXT
+        target_extension = ".txt"
     if sys.argv[0].endswith("djcss"):
         Mode = modes.DjCSS
+        target_extension = ".css"
     if sys.argv[0].endswith("djjs"):
         Mode = modes.DjJS
+        target_extension = ".js"
 
     changed_files = 0
     unchanged_files = 0
@@ -74,7 +79,7 @@ def main():
         metavar="filenames",
         nargs="*",
         default=["-"],
-        help="input filenames",
+        help="input filenames (either paths or directories)",
     )
     parser.add_argument("-d", "--debug", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -85,8 +90,7 @@ def main():
     if len(args.input_filenames) > 1 and not args.in_place and not args.check:
         sys.exit("Will not modify files in-place without -i option")
 
-    for input_filename in args.input_filenames:
-
+    for input_filename in _generate_files(args.input_filenames, target_extension):
         # Read input file
         try:
             input_file = (
@@ -181,6 +185,26 @@ def main():
             )
 
     sys.exit(changed_files if args.check else problematic_files)
+
+
+def _generate_files(input_filenames, suffix):
+    for file_name in input_filenames:
+        if file_name == "-":
+            yield file_name
+        else:
+            file_path = Path(file_name)
+            if file_path.is_file():
+                yield file_path
+            elif file_path.is_dir():
+                yield from _generate_files_from_folder(file_path, suffix)
+
+
+def _generate_files_from_folder(folder, suffix):
+    for file_path in folder.iterdir():
+        if file_path.is_file() and file_path.suffix == suffix:
+            yield file_path
+        elif file_path.is_dir():
+            yield from _generate_files_from_folder(file_path, suffix)
 
 
 if __name__ == "__main__":
