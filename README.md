@@ -138,12 +138,28 @@ Then, add the following to your `.pre-commit-config.yaml`:
 
 ```yml
 repos:
-- repo: https://github.com/rtts/djhtml
-  rev: 'main'  # replace with the latest tag on GitHub
-  hooks:
-    - id: djhtml
-    - id: djcss
-    - id: djjs
+  - repo: https://github.com/rtts/djhtml
+    rev: 'main'  # replace with the latest tag on GitHub
+    hooks:
+      - id: djhtml
+      - id: djcss
+      - id: djjs
+```
+
+Now run `pre-commit autoupdate` to automatically replace `main` with
+the latest tag on GitHub,
+[as recommended by pre-commit](https://pre-commit.com/#using-the-latest-version-for-a-repository).
+
+If you want to override a command-line option, for example to change
+the default tabwidth, you change the `entry` point of these hooks:
+
+```yml
+    hooks:
+      - id: djhtml
+        # Use a tabwidth of 2 for HTML files
+        entry: djhtml -i -t 2
+      - id: djcss
+      - id: djjs
 ```
 
 If you want to limit the files these hooks operate on, you can use
@@ -151,23 +167,17 @@ If you want to limit the files these hooks operate on, you can use
 For example:
 
 ```yml
-- repo: https://github.com/rtts/djhtml
-  rev: 'main'  # replace with the latest tag on GitHub
-  hooks:
-    - id: djhtml
-      # Indent only HTML files in template directories
-      files: .*/templates/.*\.html$
-    - id: djcss
-      # Run this hook only on SCSS files (CSS and SCSS is the default)
-      types: [scss]
-    - id: djjs
-      # Exclude JavaScript files in vendor directories
-      exclude: .*/vendor/.*
+    hooks:
+      - id: djhtml
+        # Indent only HTML files in template directories
+        files: .*/templates/.*\.html$
+      - id: djcss
+        # Run this hook only on SCSS files (CSS and SCSS is the default)
+        types: [scss]
+      - id: djjs
+        # Exclude JavaScript files in vendor directories
+        exclude: .*/vendor/.*
 ```
-
-Finally, run `pre-commit autoupdate` to automatically replace `main`
-with the latest tag on GitHub,
-[as recommended by pre-commit](https://pre-commit.com/#using-the-latest-version-for-a-repository).
 
 Now when you run `git commit` you will see something like the
 following output:
