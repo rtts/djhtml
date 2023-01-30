@@ -80,8 +80,9 @@ class DjTXT:
                             # to what it would have been with a
                             # regular text token.
 
-                            # If there is any OpenHard token in the set and current token is CloseHard
-                            # then let's move back to OpenHard.
+                            # If there is any OpenHard token in the
+                            # set and current token is CloseHard then
+                            # let's move back to OpenHard.
                             if token.is_hard and any(
                                 t.is_hard and t.indents for t in stack
                             ):
