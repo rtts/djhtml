@@ -1,6 +1,6 @@
 - id: djhtml
   name: DjHTML
-  entry: djhtml -i
+  entry: djhtml
   types: [html]
   language: python
   language_version: python3
@@ -9,7 +9,7 @@
 
 - id: djcss
   name: DjCSS
-  entry: djcss -i
+  entry: djcss
   types_or: [css, scss]
   language: python
   language_version: python3
@@ -18,7 +18,7 @@
 
 - id: djjs
   name: DjJS
-  entry: djjs -i
+  entry: djjs
   types: [javascript]
   language: python
   language_version: python3
