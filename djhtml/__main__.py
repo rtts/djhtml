@@ -57,10 +57,6 @@ def main():
                 print(Mode(source).debug())
                 sys.exit()
             result = Mode(source).indent(options.tabwidth)
-        except SyntaxError as e:
-            problematic_files += 1
-            _error(f"Syntax error in {filename}: {str(e) or e.__class__.__name__}")
-            continue
         except Exception:
             _error(
                 f"Fatal error while processing {filename}\n\n"
