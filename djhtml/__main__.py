@@ -1,16 +1,136 @@
-import argparse
+"""
+Entrypoint for all 4 command-line tools. Typical usage:
+
+    $ djhtml file1.html file2.html
+
+Passing "-" as the filename will read from standard input and write to
+standard output. Example usage:
+
+    $ djhtml - < input.html > output.html
+"""
+
 import sys
 from pathlib import Path
 
-from . import modes
+from . import modes, options
 
 
-def verify_changed(source, result):
-    """
-    Verify that the source is either exactly equal to the result or
-    that the result has only changed by added or removed whitespace.
+def main():
+    changed_files = 0
+    unchanged_files = 0
+    problematic_files = 0
 
-    """
+    # Determine mode based on script name
+    script_name = Path(sys.argv[0])
+    if script_name.stem == "djtxt":
+        Mode = modes.DjTXT
+        suffixes = [".txt"]
+    elif script_name.stem == "djcss":
+        Mode = modes.DjCSS
+        suffixes = [".css", ".scss"]
+    elif script_name.stem == "djjs":
+        Mode = modes.DjJS
+        suffixes = [".js"]
+    else:
+        Mode = modes.DjHTML
+        suffixes = [".html"]
+
+    if len(options.input_filenames) > 1 and "-" in options.input_filenames:
+        sys.exit("I’m sorry Dave, I’m afraid I can’t do that.")
+
+    for filename in _generate_filenames(options.input_filenames, suffixes):
+        # Read input file
+        try:
+            if filename == "-":
+                source = sys.stdin.read()
+            else:
+                with open(filename) as input_file:
+                    source = input_file.read()
+        except Exception as e:
+            problematic_files += 1
+            _error(e)
+            continue
+
+        # Indent input file
+        try:
+            if options.debug:
+                print(Mode(source).debug())
+                sys.exit()
+            result = Mode(source).indent(options.tabwidth)
+        except Exception:
+            _error(
+                f"Fatal error while processing {filename}\n\n"
+                "    If you have time and are using the latest version, we\n"
+                "    would very much appreciate if you opened an issue on\n"
+                "    https://github.com/rtts/djhtml/issues\n"
+            )
+            raise
+
+        changed = _verify_changed(source, result)
+        if changed:
+            changed_files += 1
+        else:
+            unchanged_files += 1
+
+        # Write output file
+        if not options.check:
+            if filename == "-":
+                if not options.quiet:
+                    print(result, end="")
+            elif changed:
+                try:
+                    with open(filename, "w") as output_file:
+                        output_file.write(result)
+                except Exception as e:
+                    changed_files -= 1
+                    problematic_files += 1
+                    _error(e)
+                    continue
+                _info(f"reindented {output_file.name}")
+
+    # Print final summary
+    s = "s" if changed_files != 1 else ""
+    have = "would have" if options.check else "have" if s else "has"
+    _info(f"{changed_files} template{s} {have} been reindented.")
+    if unchanged_files:
+        s = "s" if unchanged_files != 1 else ""
+        were = "were" if s else "was"
+        _info(f"{unchanged_files} template{s} {were} already perfect!")
+    if problematic_files:
+        s = "s" if problematic_files != 1 else ""
+        _info(
+            f"{problematic_files} template{s} could not be processed due to an error."
+        )
+
+    # Exit with appropriate exit status
+    if problematic_files:
+        sys.exit(123)
+    if options.check and changed_files:
+        sys.exit(1)
+    sys.exit(0)
+
+
+def _generate_filenames(paths, suffixes):
+    for filename in paths:
+        if filename == "-":
+            yield filename
+        else:
+            path = Path(filename)
+            if path.is_dir():
+                yield from _generate_filenames_from_directory(path, suffixes)
+            else:
+                yield path
+
+
+def _generate_filenames_from_directory(directory, suffixes):
+    for path in directory.iterdir():
+        if path.is_file() and path.suffix in suffixes:
+            yield path
+        elif path.is_dir():
+            yield from _generate_filenames_from_directory(path, suffixes)
+
+
+def _verify_changed(source, result):
     output_lines = result.split("\n")
     changed = False
     for line_nr, line in enumerate(source.split("\n")):
@@ -18,193 +138,16 @@ def verify_changed(source, result):
             changed = True
         if line.strip() != output_lines[line_nr].strip():
             raise IndentationError("Non-whitespace changes detected. Core dumped.")
-
     return changed
 
 
-def main():
-    """
-    Entrypoint for all 4 command-line tools. Typical usage:
-
-        $ djhtml -i file1.html file2.html
-
-    """
-    target_extension = ".html"
-    Mode = modes.DjHTML
-    if sys.argv[0].endswith("djtxt"):
-        Mode = modes.DjTXT
-        target_extension = ".txt"
-    if sys.argv[0].endswith("djcss"):
-        Mode = modes.DjCSS
-        target_extension = ".css"
-    if sys.argv[0].endswith("djjs"):
-        Mode = modes.DjJS
-        target_extension = ".js"
-
-    changed_files = 0
-    unchanged_files = 0
-    problematic_files = 0
-
-    parser = argparse.ArgumentParser(
-        description=(
-            "DjHTML is a fully automatic template indenter that works with mixed"
-            " HTML/CSS/Javascript templates that contain Django or Jinja template"
-            " tags. It works similar to other code-formatting tools such as Black and"
-            " interoperates nicely with pre-commit. Full documentation can be found at"
-            " https://github.com/rtts/djhtml"
-        ),
-    )
-    parser.add_argument(
-        "-i", "--in-place", action="store_true", help="modify files in-place"
-    )
-    parser.add_argument("-c", "--check", action="store_true", help="don't modify files")
-    parser.add_argument("-q", "--quiet", action="store_true", help="be quiet")
-    parser.add_argument(
-        "-t",
-        "--tabwidth",
-        metavar="N",
-        type=int,
-        default=4,
-        help="tabwidth (default is 4)",
-    )
-    parser.add_argument(
-        "-o",
-        "--output-file",
-        metavar="filename",
-        default="-",
-        help="output filename",
-    )
-    parser.add_argument(
-        "input_filenames",
-        metavar="filenames",
-        nargs="*",
-        default=["-"],
-        help="input filenames (either paths or directories)",
-    )
-    parser.add_argument("-d", "--debug", action="store_true", help=argparse.SUPPRESS)
-    args = parser.parse_args()
-
-    if args.in_place and "-" in args.input_filenames:
-        sys.exit("I’m sorry Dave, I’m afraid I can’t do that")
-
-    if len(args.input_filenames) > 1 and not args.in_place and not args.check:
-        sys.exit("Will not modify files in-place without -i option")
-
-    for input_filename in _generate_files(args.input_filenames, target_extension):
-        # Read input file
-        try:
-            input_file = (
-                sys.stdin if input_filename == "-" else open(input_filename, "r")
-            )
-            source = input_file.read()
-        except Exception as e:
-            problematic_files += 1
-            if not args.quiet:
-                print(f"Error opening {input_filename}: {e}", file=sys.stderr)
-            continue
-
-        # Indent input file
-        try:
-            if args.debug:
-                print(Mode(source).debug())
-                sys.exit()
-            result = Mode(source).indent(args.tabwidth)
-        except SyntaxError as e:
-            problematic_files += 1
-            if not args.quiet:
-                print(
-                    f"Syntax error in {input_file.name}:"
-                    f" {str(e) or e.__class__.__name__}",
-                    file=sys.stderr,
-                )
-            continue
-        except Exception:
-            print(
-                f"\nFatal error while processing {input_file.name}\n\n"
-                "    If you have time and are using the latest version, we\n"
-                "    would very much appreciate if you opened an issue on\n"
-                "    https://github.com/rtts/djhtml/issues\n",
-                file=sys.stderr,
-            )
-            raise
-        finally:
-            input_file.close()
-
-        changed = verify_changed(source, result)
-
-        # Print to stdout and exit
-        if not args.in_place and not args.check and args.output_file == "-":
-            if not args.quiet:
-                print(result, end="")
-            sys.exit(1 if args.check and changed else 0)
-
-        # Write output file
-        if changed and args.check:
-            changed_files += 1
-        elif changed:
-            output_filename = input_file.name if args.in_place else args.output_file
-            try:
-                output_file = open(output_filename, "w")
-                output_file.write(result)
-                output_file.close()
-                changed_files += 1
-            except Exception as e:
-                problematic_files += 1
-                if not args.quiet:
-                    print(f"Error writing {output_filename}: {e}", file=sys.stderr)
-                continue
-            if not args.quiet:
-                print(
-                    f"reindented {output_file.name}",
-                    file=sys.stderr,
-                )
-        else:
-            unchanged_files += 1
-
-    # Print final summary
-    if not args.quiet:
-        s = "s" if changed_files != 1 else ""
-        have = "would have" if args.check else "have" if s else "has"
-        print(
-            f"{changed_files} template{s} {have} been reindented.",
-            file=sys.stderr,
-        )
-        if unchanged_files:
-            s = "s" if unchanged_files != 1 else ""
-            were = "were" if s else "was"
-            print(
-                f"{unchanged_files} template{s} {were} already perfect!",
-                file=sys.stderr,
-            )
-        if problematic_files:
-            s = "s" if problematic_files != 1 else ""
-            print(
-                f"{problematic_files} template{s} could not be processed due to an"
-                " error.",
-                file=sys.stderr,
-            )
-
-    sys.exit(changed_files if args.check else problematic_files)
+def _info(msg):
+    if not options.quiet:
+        print(msg, file=sys.stderr)
 
 
-def _generate_files(input_filenames, suffix):
-    for file_name in input_filenames:
-        if file_name == "-":
-            yield file_name
-        else:
-            file_path = Path(file_name)
-            if file_path.is_file():
-                yield file_path
-            elif file_path.is_dir():
-                yield from _generate_files_from_folder(file_path, suffix)
-
-
-def _generate_files_from_folder(folder, suffix):
-    for file_path in folder.iterdir():
-        if file_path.is_file() and file_path.suffix == suffix:
-            yield file_path
-        elif file_path.is_dir():
-            yield from _generate_files_from_folder(file_path, suffix)
+def _error(msg):
+    _info(f"Error: {msg}")
 
 
 if __name__ == "__main__":

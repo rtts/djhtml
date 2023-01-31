@@ -62,29 +62,18 @@ Install DjHTML with the following command:
 ## Usage
 
 After installation you can indent templates using the `djhtml`
-command. The default is to read from standard in and to write the
-indented output to standard out. To modify the source file in-place,
-use the `-i` / `--in-place` option and specify a filename:
+command:
 
-    $ djhtml -i template.html
+    $ djhtml template.html
     reindented template.html
     1 template has been reindented.
 
-Normally, the exit status of 0 means everything went well, regardless
-of whether any files were changed. If any errors were encountered, the
-exit status indicated the number of problematic files. However, when
-the option `-c` / `--check` is used, the exit status is the number of
-files that would have changed, but no changes are actually made.
-
-All available options are:
-
-- `-h` / `--help`: show overview of available options
-- `-i` / `--in-place`: modify files in-place
-- `-c` / `--check`: don't modify files; the exit status is the number
-    of files that would have changed
-- `-q` / `--quiet`: don't print any output
-- `-t` / `--tabwidth`: set tabwidth (default is 4)
-- `-o` / `--output-file`: write output to specified file
+An exit status of 0 means that everything went well, regardless of
+whether any files were changed. When the option `-c` / `--check` is
+used, the exit status is 1 when one or more files would have changed,
+but no changes are actually made. The exit status of 123 means that
+there was an error while indenting one or more files. All available
+options are given by `djthml -h` / `djthml --help`.
 
 
 ## `fmt:off` and `fmt:on`
@@ -157,7 +146,7 @@ the default tabwidth, you change the `entry` point of these hooks:
     hooks:
       - id: djhtml
         # Use a tabwidth of 2 for HTML files
-        entry: djhtml -i -t 2
+        entry: djhtml --tabwith 2
       - id: djcss
       - id: djjs
 ```
