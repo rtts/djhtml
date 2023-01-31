@@ -74,20 +74,20 @@ def main():
             unchanged_files += 1
 
         # Write output file
-        if filename == "-":
-            if not options.check:
-                print(result, end="")
-        elif changed:
-            try:
-                output_file = open(filename, "w")
-                output_file.write(result)
-                output_file.close()
-            except Exception as e:
-                changed_files -= 1
-                problematic_files += 1
-                _error(f"Error writing {filename}: {e}")
-                continue
-            _info(f"reindented {output_file.name}")
+        if not options.check:
+            if filename == "-":
+                if not options.quiet:
+                    print(result, end="")
+            elif changed:
+                try:
+                    with open(filename, "w") as output_file:
+                        output_file.write(result)
+                except Exception as e:
+                    changed_files -= 1
+                    problematic_files += 1
+                    _error(e)
+                    continue
+                _info(f"reindented {output_file.name}")
 
     # Print final summary
     s = "s" if changed_files != 1 else ""
