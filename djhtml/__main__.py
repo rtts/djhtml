@@ -20,17 +20,20 @@ def main():
     unchanged_files = 0
     problematic_files = 0
 
-    suffixes = [".html"]
-    Mode = modes.DjHTML
-    if sys.argv[0].endswith("djtxt"):
+    # Determine mode based on script name
+    script_name = Path(sys.argv[0])
+    if script_name.stem == "djtxt":
         Mode = modes.DjTXT
         suffixes = [".txt"]
-    if sys.argv[0].endswith("djcss"):
+    elif script_name.stem == "djcss":
         Mode = modes.DjCSS
         suffixes = [".css", ".scss"]
-    if sys.argv[0].endswith("djjs"):
+    elif script_name.stem == "djjs":
         Mode = modes.DjJS
         suffixes = [".js"]
+    else:
+        Mode = modes.DjHTML
+        suffixes = [".html"]
 
     if len(options.input_filenames) > 1 and "-" in options.input_filenames:
         sys.exit("I’m sorry Dave, I’m afraid I can’t do that.")
