@@ -38,9 +38,11 @@ def main():
     for filename in _generate_filenames(options.input_filenames, suffixes):
         # Read input file
         try:
-            input_file = sys.stdin if filename == "-" else open(filename, "r")
-            source = input_file.read()
-            input_file.close()
+            if filename == "-":
+                source = sys.stdin.read()
+            else:
+                with open(filename) as input_file:
+                    source = input_file.read()
         except Exception as e:
             problematic_files += 1
             _error(e)
