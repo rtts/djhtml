@@ -71,7 +71,8 @@ command:
 An exit status of 0 means that everything went well, regardless of
 whether any files were changed. When the option `-c` / `--check` is
 used, the exit status is 1 when one or more files would have changed,
-but no changes are actually made.
+but no changes are actually made. The exit status of 123 means that
+there was an error while indenting one or more files.
 
 All available options are:
 

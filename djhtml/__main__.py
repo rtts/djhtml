@@ -40,11 +40,11 @@ def main():
         try:
             input_file = sys.stdin if filename == "-" else open(filename, "r")
             source = input_file.read()
+            input_file.close()
         except Exception as e:
             problematic_files += 1
-            _error(f"Cannot open {filename}: {e}")
-        finally:
-            input_file.close()
+            _error(e)
+            continue
 
         # Indent input file
         try:
@@ -103,7 +103,7 @@ def main():
 
     # Exit with appropriate exit status
     if problematic_files:
-        sys.exit(1)
+        sys.exit(123)
     if options.check and changed_files:
         sys.exit(1)
     sys.exit(0)
@@ -115,10 +115,10 @@ def _generate_filenames(paths, suffixes):
             yield filename
         else:
             path = Path(filename)
-            if path.is_file():
-                yield path
-            elif path.is_dir():
+            if path.is_dir():
                 yield from _generate_filenames_from_directory(path, suffixes)
+            else:
+                yield path
 
 
 def _generate_filenames_from_directory(directory, suffixes):
