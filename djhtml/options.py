@@ -47,7 +47,10 @@ args = parser.parse_args(namespace=self)
 
 if self.in_place:
     sys.exit(
-        "The -i (--in-place) argument has been deprecated as it's now the default. If"
-        " you have a custom pre-commit entry for DjHTML, remove the -i argument from it"
-        " and everything will continue to work as before."
+        """
+You have called DjHTML with the -i or --in-place argument which
+has been deprecated as it's now the default. If you have a custom
+pre-commit entry for DjHTML, remove the -i argument from it and
+everything will continue to work as before.
+"""
     )
