@@ -146,7 +146,7 @@ the default tabwidth, you change the `entry` point of these hooks:
     hooks:
       - id: djhtml
         # Use a tabwidth of 2 for HTML files
-        entry: djhtml --tabwith 2
+        entry: djhtml --tabwidth 2
       - id: djcss
       - id: djjs
 ```
