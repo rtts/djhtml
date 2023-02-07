@@ -54,9 +54,19 @@ This is what it will look like after processing by DjHTML:
 
 ## Installation
 
+DjHTML is compatible with all operating systems supported by Python.
 Install DjHTML with the following command:
 
     $ pip install djhtml
+
+Note that [Windows still uses legacy code pages for the system
+encoding](https://docs.python.org/3/using/windows.html#win-utf8-mode).
+It is highly advised to set the environment variable `PYTHONUTF8` to
+`1` to avoid issues with indenting UTF-8 files. You can do so with the
+[setx](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/setx)
+command:
+
+    C:\> setx /m PYTHONUTF8 1
 
 
 ## Usage
