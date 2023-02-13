@@ -64,6 +64,15 @@ class DjTXT:
 
         """
         stack = []
+
+        def mode_in_stack(mode):
+            if stack[-1].mode is DjTXT:
+                return False
+            for token in stack:
+                if token.mode is mode:
+                    return True
+            return False
+
         for line in self.lines:
             first_token = True
             for token in line.tokens:
@@ -76,11 +85,11 @@ class DjTXT:
                     if token.dedents:
                         if stack[-1].mode is token.mode:
                             opening_token = stack.pop()
-                            if stack and opening_token.is_double:
+                            if stack and (opening_token.is_double or token.is_double):
                                 opening_token = stack.pop()
-                        elif token.mode is DjTXT:
+                        elif mode_in_stack(token.mode):
                             opening_token = stack.pop()
-                            while opening_token.mode is not DjTXT:
+                            while opening_token.mode is not token.mode:
                                 opening_token = stack.pop()
                         elif first_token:
                             line.level = stack[-1].level + 1
@@ -294,12 +303,17 @@ class DjCSS(DjTXT):
             token = Token.Open(raw_token, mode=DjCSS, **self.offsets)
             self.offsets["relative"] = 0
         elif raw_token in "})":
-            token = Token.Close(raw_token, mode=DjCSS, **self.offsets)
-            try:
-                self.offsets["relative"] = self.previous_offsets.pop()
-            except IndexError:
+            if raw_token == "}" and self.offsets["absolute"]:
+                self.offsets["absolute"] = 0
                 self.offsets["relative"] = 0
-        elif raw_token.endswith(": "):
+                token = Token.CloseDouble(raw_token, mode=DjCSS, **self.offsets)
+            else:
+                token = Token.Close(raw_token, mode=DjCSS, **self.offsets)
+                try:
+                    self.offsets["relative"] = self.previous_offsets.pop()
+                except IndexError:
+                    self.offsets["relative"] = 0
+        elif not len(line) and raw_token.endswith(": "):
             token = Token.Open(raw_token, mode=DjCSS, **self.offsets)
             self.offsets["relative"] = -1
             self.offsets["absolute"] = len(raw_token)

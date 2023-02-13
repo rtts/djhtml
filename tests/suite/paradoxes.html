@@ -33,25 +33,6 @@
 {% endfor %}
 
 
-<!-- The most complicated example I can think of -->
-<body>
-    {% if %}
-        <div>
-    {% else %}
-        <span>{% if %}<blink>
-            {% block %}
-                </blink>
-            {% endblock %}{% endif %}
-    {% endif %}
-    .
-    {% if %}
-        </span>
-    {% else %}
-        </div>
-    {% endif %}
-</body>
-
-
 <!-- Inside <script> tag -->
 <script>
     {% if jquery %}

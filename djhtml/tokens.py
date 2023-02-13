@@ -43,6 +43,10 @@ class Token:
     class Close(_Base):
         dedents = True
 
+    class CloseDouble(_Base):
+        dedents = True
+        is_double = True
+
     class CloseAndOpen(_Base):
         indents = True
         dedents = True

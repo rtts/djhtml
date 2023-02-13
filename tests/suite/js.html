@@ -266,5 +266,22 @@ return 42;
                         .baz
                 });
         });
-    }
 </script>
+
+
+<!-- Not enough closing tokens -->
+<head>
+    <script>
+        function foo() {
+    </script>
+</head>
+
+<!-- Too much closing tokens -->
+<head>
+    <script>
+        function foo() {
+        }
+        }
+        }
+    </script>
+</head>
