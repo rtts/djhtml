@@ -53,9 +53,6 @@ def main():
 
         # Indent input file
         try:
-            if options.debug:
-                print(Mode(source).debug())
-                sys.exit()
             result = Mode(source).indent(options.tabwidth)
         except Exception:
             _error(
@@ -66,8 +63,7 @@ def main():
             )
             raise
 
-        changed = _verify_changed(source, result)
-        if changed:
+        if changed := _verify_changed(source, result):
             changed_files += 1
         else:
             unchanged_files += 1
@@ -101,6 +97,9 @@ def main():
         _info(
             f"{problematic_files} template{s} could not be processed due to an error."
         )
+
+    if options.debug:
+        print(Mode(source).debug(), file=sys.stderr)
 
     # Exit with appropriate exit status
     if problematic_files:

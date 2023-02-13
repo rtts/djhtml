@@ -229,3 +229,42 @@ return 42;
         'case ',
     ];
 </script>
+
+
+<!-- Another problematic switch statement -->
+<script>
+    switch (foo) {
+        case bar:
+            if (baz) {
+                switch (foo) {
+                    case bar:
+                        if (baz) {
+                            xizzy();
+                        }
+                }
+            }
+    }
+</script>
+
+<!-- More function chaining -->
+<script>
+    window.fetch('/test.html')
+        .then((html) => {
+            document.body.innerHTML = html;
+        });
+
+    foo
+        .bar
+        .baz
+        .then(() => {
+            foo
+                .bar
+                .baz
+                .then(() => {
+                    foo
+                        .bar
+                        .baz
+                });
+        });
+    }
+</script>

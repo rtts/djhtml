@@ -1,0 +1,330 @@
+<!-- Basic HTML sanity check -->
+<!doctype html>
+<html>
+    <head>
+        <title>Plain</title>
+        <script src="test.js"></script>
+        <link rel="stylesheet" href="test.css">
+    </head>
+    <body>
+        <h1>Title</h1>
+    </body>
+</html>
+
+
+<!-- Multiple closing/opening tags on same line -->
+<div>
+    text
+</div><div>
+    text
+</div>
+
+
+<!-- Some crazy edgecases that even the mighty web-mode fails to indent correctly -->
+<div>
+    <div>
+        <div>
+            text
+        </div></div></div>
+
+<div><div><div>
+    text
+</div>
+</div>
+</div>
+
+<div0><div1>
+    text2</div1><div1><div2>
+        text3
+    </div2><div2>
+        text3
+    </div2>
+    </div1>
+</div0>
+
+<div0>
+    <div1>
+        <div2>
+            text3
+        </div2></div1></div0><div0>
+            text1
+        </div0>
+
+
+<!-- Ignore self-closing tags -->
+<div>
+    <div/>
+    text
+</div>
+
+
+<!-- Ignore void tags -->
+<div>
+    <img>
+    <input>
+    <input />
+    <input></input>
+    <!doctype>
+</div>
+
+<!-- Don't parse style/script as html -->
+<script>
+    <ul>
+    <li>
+</script>
+
+<style>
+    <style>
+</style>
+
+
+<!-- Except for JS templates... -->
+<script id="id" type="text/template" class="class">
+    <ul>
+        <li/>
+    </ul>
+</script>
+
+
+<!-- Ignore multiline comments -->
+<!--
+ 1
+  2
+   3
+-->
+
+
+<!-- Ignore <pre> elements -->
+<pre>
+   <dl>
+  <dt>
+ <dd>
+</pre>
+
+
+<!-- Ignore both begin and end tags -->
+    <!--
+ -->
+            <pre>
+    </pre>
+       {#
+                 #}
+
+
+<!-- Real life example kindly provided by @jacklinke -->
+<div class="row">
+    <div class="input-group date" data-provide="datepicker" data-date-format="yyyy/mm/dd">
+        <div class="btn">
+        </div></div>
+</div><div>
+    <div class="custom-control custom-switch">
+        <input type="checkbox" name="filter-changes" id="filter-changes" class="custom-control-input fs-nano" value="0" {% if request.session.manage_filter_changes %}{% if request.session.manage_filter_changes == True %}checked{% endif %}{% endif %}>
+    </div>
+    <form class="form-inline">
+        <div class="custom-control custom-switch">
+            <input type="checkbox" name="filter-status-new" id="filter-status-new" class="custom-control-input fs-nano" value="0" {% if request.session.manage_filter_status_new %}{% if request.session.manage_filter_status_new == True %}checked{% endif %}{% endif %}>
+        </div>
+    </form>
+</div>
+
+
+<!-- SVG with multi-line attribute values -->
+<svg width="325" height="325" xmlns="http://www.w3.org/2000/svg">
+    <path
+          d="M 80 80
+             A 45 45, 0, 0, 0, 125 125
+             L 125 80 Z"
+          fill="green"
+    />
+    <path
+          d="
+             M 80 80
+             A 45 45, 0, 0, 0, 125 125
+             L 125 80 Z
+            "
+          fill="green"
+    />
+    <path d="M 80 80
+             A 45 45, 0, 0, 0, 125 125
+             L 125 80 Z"
+          fill="green"
+    />
+</svg>
+
+
+<!-- Greater than character inside tag -->
+<div {% if foo > bar %}class="baz"{% endif %}>
+    quux
+</div>
+
+
+<!-- Block tags inside HTML elements -->
+<div
+     {% block class %}
+         class="foo"
+     {% endblock %}
+>
+    text
+</div>
+
+<div
+     {% block classes %}
+         class="
+                foo
+                bar
+               "
+     {% endblock %}
+>
+    text
+</div>
+
+<div id="1" class="{% block classes %}
+                       foo
+                       bar
+                       {% if %}
+                           baz
+                       {% elif %}
+                           quux
+                       {% endif %}
+                   {% endblock %}
+                  "
+     hidden
+>
+    text
+</div>
+
+
+
+<!-- Non-block tags inside HTML elements -->
+<a href="{% url %}"
+   class="button"
+>
+    Click me!
+</a>
+
+
+<!-- Spurious < and > characters -->
+<div>
+    >
+</div>
+<div>
+    <
+</div>
+
+
+<!-- Arrow inside attribute -->
+<div>
+    <button action="a->b">
+        hi
+    </button>
+</div>
+
+
+<!-- Multi-line elements -->
+<a id="1" href=""
+   class="button">
+    text
+</a>
+<a
+   id="2" href=""
+   class="button">
+    text
+</a>
+<a id="3" href=""
+   class="button"
+>
+    text
+</a>
+<a
+   id="4" href=""
+   class="button"
+>
+    text
+</a>
+
+
+<!-- The example from issue #50
+<img src="/some/long/path"
+     id="1">
+<blockquote class="dishy"
+            id="2" />
+<a href="/some/long/path"
+   id="3"></a>
+
+
+<!-- Multi-line attribute values -->
+<div id="
+         1">
+    <div id="2
+            ">
+        <div id="
+                 3
+                ">
+            <div id="
+                     4"
+            >
+                <div id="5
+                        "
+                >
+                    <div id="
+                             6
+                            "
+                    >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Weird but legal attribute names -->
+<div !click="
+            "
+     @click="
+            "
+     #click="
+            "
+     $click="
+            "
+     %click="
+            "
+     ^click="
+            "
+     &click="
+            "
+     *click="
+            "
+     <click="
+            "
+     data-data="
+               "
+>
+    text
+</div>
+
+<!-- Weird but legal element names -->
+<my-component
+              hidden/>
+<my.component
+              hidden/>
+<my:component
+              hidden/>
+
+
+<!-- Multi-line attribute value with additional elements/attributes -->
+<div><blockquote id="1" id="2"
+                 id="3" cite="
+                              Wikipedia
+                             "
+                 id="4"/></div>
+
+
+<!-- The example from the README -->
+<blockquote cite="John Lennon"
+            style="color: dimgray;
+                   font-style: italic;
+                   border-left: 5px solid gray;
+                  ">
+    It's weird not to be weird.
+</blockquote>

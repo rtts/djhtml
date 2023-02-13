@@ -2,8 +2,7 @@
 
 ***A pure-Python Django/Jinja template indenter without dependencies.***
 
-DjHTML is a fully automatic template indenter that works with mixed
-HTML/CSS/Javascript templates that contain
+DjHTML indents mixed HTML/CSS/Javascript templates that contain
 [Django](https://docs.djangoproject.com/en/stable/ref/templates/language/)
 or [Jinja](https://jinja.palletsprojects.com/templates/) template
 tags. It works similar to other code-formatting tools such as
@@ -59,10 +58,10 @@ Install DjHTML with the following command:
 
     $ pip install djhtml
 
-Note that [Windows still uses legacy code pages for the system
-encoding](https://docs.python.org/3/using/windows.html#win-utf8-mode).
-It is highly advised to set the environment variable `PYTHONUTF8` to
-`1` to avoid issues with indenting UTF-8 files. You can do so with the
+Note that
+[Windows still uses legacy code pages](https://docs.python.org/3/using/windows.html#win-utf8-mode)
+instead of UTF-8. It is highly advised to set the environment variable
+`PYTHONUTF8` to `1` with the
 [setx](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/setx)
 command:
 
@@ -78,12 +77,42 @@ command:
     reindented template.html
     1 template has been reindented.
 
+You can also run `djhtml .` to indent all HTML files beneath the
+current directory.
+
 An exit status of 0 means that everything went well, regardless of
 whether any files were changed. When the option `-c` / `--check` is
 used, the exit status is 1 when one or more files would have changed,
-but no changes are actually made. The exit status of 123 means that
-there was an error while indenting one or more files. All available
-options are given by `djthml -h` / `djthml --help`.
+but no changes are actually made. All available options are given by
+`djthml -h` / `djthml --help`.
+
+
+## New! Multi-line HTML tag alignment
+
+As of version 3, DjHTML indents multi-line HTML tags and multi-line
+attribute values like this:
+
+```html
+<blockquote cite="John Lennon"
+            style="color: dimgray;
+                   font-style: italic;
+                   border-left: 5px solid gray;
+                  ">
+    It's weird not to be weird.
+</blockquote>
+```
+
+
+## New! Django middleware
+
+To automatically indent all the HTML responses from your Django web
+application, add the following to your settings file:
+
+    TABWIDTH = 4
+    MIDDLEWARE += ['djhtml.middleware.DjHTMLMiddleware']
+
+(Caution: when used in production, it is advised to use some kind of
+[caching](https://docs.djangoproject.com/en/stable/topics/cache/).)
 
 
 ## `fmt:off` and `fmt:on`
@@ -98,7 +127,7 @@ You can exclude specific lines from being processed with the
      /     .\
      \_,--._/
     {# fmt:on #}
-"/>
+           "/>
 ```
 
 Contents inside `<pre> ... </pre>`, `<!-- ... --->`, `/* ... */`, and
@@ -124,7 +153,7 @@ The indenter operates in one of three different modes:
 
 ## pre-commit configuration
 
-The best way to use DjHTML is as a [pre-commit](https://pre-commit.com/)
+A great way to use DjHTML is as a [pre-commit](https://pre-commit.com/)
 hook, so all your HTML, CSS and JavaScript files will automatically be
 indented upon every commit.
 
@@ -202,6 +231,7 @@ happy, please do the following:
    formatted, and an example of how it should have been formatted.
 
 Your feedback for improving DjHTML is very welcome!
+
 
 ## Development
 

@@ -1,0 +1,53 @@
+<!-- Basic CSS -->
+<style>
+    a {
+        text-decoration: none;
+    }
+</style>
+
+
+<!-- Nested SCSS -->
+<style>
+    a {
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+</style>
+
+
+<!-- Multiline comment -->
+<style>
+    /*
+     * Hi mom!
+     *
+     */
+</style>
+
+
+<!-- CSS Function -->
+<style>
+    #gradient {
+        background: linear-gradient(
+                        to top left,
+                        rgba(204,0,0,1),
+                        rgba(204,0,0,0)
+                    );
+    }
+</style>
+
+
+<!-- @font-face typical usage -->
+<style>
+    @font-face {
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: normal;
+        src: url('Open_Sans.woff2') format('woff2'),
+             url('Open_Sans.woff') format('woff'),
+             url('Open_Sans.eot?#iefix') format('embedded-opentype'),
+             url('Open_Sans.svg#OpenSans') format('svg'),
+             url('Open_Sans.ttf') format('truetype');
+    }
+</style>
