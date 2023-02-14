@@ -75,3 +75,38 @@
         dontread: true !important
     }
 </style>
+
+
+<!-- Nested SCSS with missing semicolons and different indentation styles -->
+<style>
+    article {
+        p { color: #999; align: left }
+    }
+    article {
+        p { color: #999;
+            align: left }
+    }
+    article {
+        p {
+            color: #999;
+            align: left }
+    }
+    article {
+        p { color: #999;
+            align: left
+        }
+    }
+    article {
+        p {
+            color: #999;
+            align: left
+        }
+    }
+    article {
+        p
+        {
+            color: #999;
+            align: left;
+        }
+    }
+</style>

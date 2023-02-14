@@ -295,6 +295,10 @@ class DjCSS(DjTXT):
         r";",
     ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.inside_block = False
+
     def create_token(self, raw_token, src, line):
         mode = self
 
@@ -302,6 +306,8 @@ class DjCSS(DjTXT):
             self.previous_offsets.append(self.offsets["relative"])
             token = Token.Open(raw_token, mode=DjCSS, **self.offsets)
             self.offsets["relative"] = 0
+            if raw_token == "{":
+                self.inside_block = True
         elif raw_token in "})":
             if raw_token == "}" and self.offsets["absolute"]:
                 self.offsets["absolute"] = 0
@@ -313,7 +319,9 @@ class DjCSS(DjTXT):
                     self.offsets["relative"] = self.previous_offsets.pop()
                 except IndexError:
                     self.offsets["relative"] = 0
-        elif not len(line) and raw_token.endswith(": "):
+            if raw_token == "}":
+                self.inside_block = False
+        elif self.inside_block and raw_token.endswith(": "):
             token = Token.Open(raw_token, mode=DjCSS, **self.offsets)
             self.offsets["relative"] = -1
             self.offsets["absolute"] = len(raw_token)
