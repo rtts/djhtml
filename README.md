@@ -51,10 +51,39 @@ This is what it will look like after processing by DjHTML:
 ```
 
 
+## New! Multi-line HTML elements
+
+As of version 3, DjHTML indents multi-line HTML elements and
+multi-line attribute values like this:
+
+```html
+<blockquote cite="John Lennon"
+            style="color: dimgray;
+                   font-style: italic;
+                   border-left: 5px solid gray;
+                  ">
+    It's weird not to be weird.
+</blockquote>
+```
+
+
+## New! Django middleware
+
+To automatically indent all the HTML responses from your Django web
+application, add the following to your settings file:
+
+    TABWIDTH = 4
+    MIDDLEWARE += ['djhtml.middleware.DjHTMLMiddleware']
+
+(Caution: when used in production, it is advised to use some kind of
+[caching](https://docs.djangoproject.com/en/stable/topics/cache/).)
+
+
 ## Installation
 
-DjHTML is compatible with all operating systems supported by Python.
-Install DjHTML with the following command:
+DjHTML requires Python 3.8 or higher and is compatible with all
+operating systems supported by Python. Install DjHTML with the
+following command:
 
     $ pip install djhtml
 
@@ -85,34 +114,6 @@ whether any files were changed. When the option `-c` / `--check` is
 used, the exit status is 1 when one or more files would have changed,
 but no changes are actually made. All available options are given by
 `djthml -h` / `djthml --help`.
-
-
-## New! Multi-line HTML tag alignment
-
-As of version 3, DjHTML indents multi-line HTML tags and multi-line
-attribute values like this:
-
-```html
-<blockquote cite="John Lennon"
-            style="color: dimgray;
-                   font-style: italic;
-                   border-left: 5px solid gray;
-                  ">
-    It's weird not to be weird.
-</blockquote>
-```
-
-
-## New! Django middleware
-
-To automatically indent all the HTML responses from your Django web
-application, add the following to your settings file:
-
-    TABWIDTH = 4
-    MIDDLEWARE += ['djhtml.middleware.DjHTMLMiddleware']
-
-(Caution: when used in production, it is advised to use some kind of
-[caching](https://docs.djangoproject.com/en/stable/topics/cache/).)
 
 
 ## `fmt:off` and `fmt:on`
@@ -235,23 +236,33 @@ Your feedback for improving DjHTML is very welcome!
 
 ## Development
 
-Use your preferred system for setting up a virtualenv, docker environment,
-or whatever else, then run the following:
+First of all, clone this repository:
 
-```sh
-python -m pip install -e '.[dev]'
-pre-commit install --install-hooks
-```
+    $ git clone https://github.com/rtts/djhtml
+    $ cd djhtml
 
-Tests can then be run quickly in that environment:
+Then, create a Python virtualenv and activate it:
 
-```sh
-python -m unittest discover -v
-```
+    $ python -m venv ~/.virtualenvs/djhtml
+    $ . ~/.virtualenvs/djhtml/bin/activate
 
-Or testing in all available supported environments and linting can be run
-with [`nox`](https://nox.thea.codes):
+Then, install the package in [development
+mode](https://setuptools.pypa.io/en/latest/userguide/development_mode.html)
+including the `dev` dependencies, and install the pre-commit hooks:
 
-```sh
-nox
-```
+    $ python -m pip install -e '.[dev]'
+    $ pre-commit install --install-hooks
+
+You can run the unittests with:
+
+    $ python -m unittest
+
+Or use [`nox`](https://nox.thea.codes) to test all supported Python
+interpreters:
+
+    $ nox
+
+Finally, to get a little insight into the tokenization step of the
+indenting algorithm, you can run DjHTML with the `-d` / `--debug`
+argument. You will see a Python representation of the tokens that are
+created.

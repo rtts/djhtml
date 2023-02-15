@@ -1,13 +1,15 @@
 <!-- Common pattern in django templates -->
-{% if %}
-    <a>
-{% else %}
-    <a>
-{% endif %}
-.
-{% if %}
-    </a>
-{% endif %}
+<div>
+    {% if some_condition %}
+        <a href="{% url a %}">
+    {% elif some_other condition %}
+        <a href="{% url b %}">
+    {% endif %}
+    .
+    {% if some_condition or some_other_condition %}
+        </a>
+    {% endif %}
+</div>
 
 
 <!-- The literal example from issue #17 -->
@@ -43,3 +45,6 @@
     console.log("Time to ditch jQuery!")
     });
 </script>
+
+
+<!-- Final note: all other malstructured source files will result in undefined behavior, but not in errors -->

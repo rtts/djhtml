@@ -3,6 +3,7 @@ Options set by command-line arguments. Usage:
 
     import options
     print(f"Tabwidth is {options.tabwidth}")
+
 """
 
 import argparse
@@ -38,7 +39,7 @@ parser.add_argument(
     nargs="+",
     help="input filenames (either paths or directories)",
 )
-parser.add_argument("-d", "--debug", action="store_true", help=argparse.SUPPRESS)
+parser.add_argument("-d", "--debug", action="store_true", help="debug mode")
 parser.add_argument("-i", "--in-place", action="store_true", help=argparse.SUPPRESS)
 
 # Parse arguments and assign attributes to self

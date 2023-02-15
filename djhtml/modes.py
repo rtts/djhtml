@@ -4,49 +4,29 @@ from .lines import Line
 from .tokens import Token
 
 
-class DjTXT:
+class BaseMode:
     """
-    Mode for indenting Django/Jinja template tags.
-    Also serves as the base class for the other modes:
-
-    - DjHTML
-    - DjCSS
-    - DjJS
+    Base class for the different modes.
 
     """
-
-    RAW_TOKENS = [
-        r"\n",
-        r"{%[-\+]?.*?[-\+]?%}",
-        r"{#.*?#}",
-        r"{#",
-        r"{{.*?}}",
-    ]
-    CLOSING_AND_OPENING_TAGS = [
-        "elif",
-        "else",
-        "empty",
-        "plural",
-    ]
-    COMMENT_TAGS = [
-        "comment",
-        "verbatim",
-        "raw",
-    ]
-    AMBIGUOUS_BLOCK_TAGS = {
-        # token_name: (regex_if_block, regex_if_not_block)
-        "set": (None, " = "),
-        "video": (" as ", None),
-    }
-    FMT_ON = r"{# fmt:on #}"
-    FMT_OFF = r"{# fmt:off #}"
-    OPENING_TAG = r"{%[-\+]? *(\w+).*?[-\+]?%}"
 
     def __init__(self, source="", return_mode=None):
+        """
+        Instantiate with source text before calling indent(), or
+        with the return_mode when invoked from within another mode.
+
+        """
+        assert type(self) is not BaseMode
+        assert source or return_mode
+
         self.source = source
         self.return_mode = return_mode or self
         self.token_re = compile_re(self.RAW_TOKENS)
-        self.offsets = {"relative": 0, "absolute": 0}
+
+        # To keep track of the current offsets.
+        self.offsets = dict(relative=0, absolute=0)
+
+        # To be used as a stack by some modes.
         self.previous_offsets = []
 
     def indent(self, tabwidth):
@@ -58,69 +38,17 @@ class DjTXT:
         self.parse()
         return "\n".join([line.indent(tabwidth) for line in self.lines])
 
-    def parse(self):
-        """
-        You found the top-secret indenting algorithm!
-
-        """
-        stack = []
-
-        def mode_in_stack(mode):
-            if stack[-1].mode is DjTXT:
-                return False
-            for token in stack:
-                if token.mode is mode:
-                    return True
-            return False
-
-        for line in self.lines:
-            first_token = True
-            for token in line.tokens:
-                opening_token = None
-                if stack:
-                    # When a dedenting token is found, match it with
-                    # the token at the top of the stack. To find out
-                    # what each statement does, uncomment it and see
-                    # which unittests fail.
-                    if token.dedents:
-                        if stack[-1].mode is token.mode:
-                            opening_token = stack.pop()
-                            if stack and (opening_token.is_double or token.is_double):
-                                opening_token = stack.pop()
-                        elif mode_in_stack(token.mode):
-                            opening_token = stack.pop()
-                            while opening_token.mode is not token.mode:
-                                opening_token = stack.pop()
-                        elif first_token:
-                            line.level = stack[-1].level + 1
-
-                        # Dedent!
-                        if first_token and opening_token:
-                            line.level = opening_token.level
-
-                    else:
-                        # Indent!
-                        if token.is_double and stack[-1].is_double:
-                            opening_token = stack.pop()
-                        if stack and first_token:
-                            line.level = stack[-1].level + 1
-
-                if first_token:
-                    line.level = line.level + token.relative
-                    line.offset = token.absolute
-                    line.ignore = token.ignore
-
-                # Push indenting tokens onto the stack.
-                if token.indents:
-                    token.level = opening_token.level if opening_token else line.level
-                    stack.append(token)
-
-                if token.text.strip():
-                    first_token = False
-
     def tokenize(self):
         """
         Split the source text into tokens and place them on lines.
+
+        How text is split into raw tokens is defined by the regexes
+        of each mode. For each raw token, the create_token() method of
+        the mode is called.
+
+        Some tokens, such a <style> or <script> tags in HTML, can
+        switch to a different mode by returning a new instance of that
+        mode alongside the token.
 
         """
         self.lines = []
@@ -159,12 +87,131 @@ class DjTXT:
             # Set the new source to the old tail for the next iteration.
             src = tail
 
-    def create_token(self, raw_token, src, line):
+    def parse(self):
         """
-        Given a raw token string, return a single token and the
-        next mode.
+        You found the top-secret indenting algorithm!
+
+        Once the source has been split into tokens, the indentation is
+        solely determined by the attributes of the tokens. This makes
+        the algorithm independent of the language (HTML, CSS, JS), and
+        thereby accomodates different languages used interchangeably.
 
         """
+        stack = []
+
+        def mode_in_stack(mode):
+            """
+            Helper function to see if a token from a specific mode
+            is in the stack.
+
+            """
+            if stack[-1].mode is DjTXT:
+                # See paradoxes.html and issue #17
+                return False
+            for token in stack:
+                if token.mode is mode:
+                    return True
+            return False
+
+        for line in self.lines:
+            first_token = True
+            for token in line.tokens:
+                opening_token = None
+                if stack:
+
+                    # When a dedenting token is found, pop the
+                    # corresponding opening token from the stack.
+                    if token.dedents:
+                        if stack[-1].mode is token.mode:
+                            opening_token = stack.pop()
+                            if stack and (opening_token.is_double or token.is_double):
+                                opening_token = stack.pop()
+
+                        # Error: the opening token is from a different
+                        # mode. Pop the stack until the correct
+                        # opening token is found.
+                        elif mode_in_stack(token.mode):
+                            opening_token = stack.pop()
+                            while opening_token.mode is not token.mode:
+                                opening_token = stack.pop()
+
+                        # Error: there are no tokens in the stack of
+                        # the same mode. Set the line level to a sane
+                        # value.
+                        elif first_token:
+                            line.level = stack[-1].level + 1
+
+                        # Success! If the dedenting token is first in
+                        # line, set the line level to the level of the
+                        # opening token.
+                        if first_token and opening_token:
+                            line.level = opening_token.level
+
+                    # For non-dedenting tokens, set the line one level
+                    # higher than the opening token's level.
+                    else:
+                        if token.is_double and stack[-1].is_double:
+                            opening_token = stack.pop()
+                        if stack and first_token:
+                            line.level = stack[-1].level + 1
+
+                # Adjust line level according to the token's offsets.
+                if first_token:
+                    line.level = line.level + token.relative
+                    line.offset = token.absolute
+                    line.ignore = token.ignore
+
+                # Push indenting tokens onto the stack.
+                if token.indents:
+                    token.level = opening_token.level if opening_token else line.level
+                    stack.append(token)
+
+                if token.text.strip():
+                    first_token = False
+
+    def debug(self):
+        self.tokenize()
+        self.parse()
+        return "\n".join([repr(line) for line in self.lines])
+
+
+class DjTXT(BaseMode):
+    """
+    Mode for indenting text containing Django/Jinja template tags.
+
+    This mode is special because all the other modes inherit from it,
+    because all other modes can contain Django/Jinja template tags.
+
+    """
+
+    RAW_TOKENS = [
+        r"\n",
+        r"{%[-\+]?.*?[-\+]?%}",
+        r"{#.*?#}",
+        r"{#",
+        r"{{.*?}}",
+    ]
+    CLOSING_AND_OPENING_TAGS = [
+        "elif",
+        "else",
+        "empty",
+        "plural",
+    ]
+    COMMENT_TAGS = [
+        "comment",
+        "verbatim",
+        "raw",
+    ]
+    AMBIGUOUS_BLOCK_TAGS = {
+        # token_name: (regex_if_block, regex_if_not_block)
+        "set": (None, " = "),
+        "video": (" as ", None),
+    }
+    FMT_ON = r"{# fmt:on #}"
+    FMT_OFF = r"{# fmt:off #}"
+    OPENING_TAG = r"{%[-\+]? *(\w+).*?[-\+]?%}"
+
+    def create_token(self, raw_token, src, line):
         mode = self
 
         if tag := re.match(self.OPENING_TAG, raw_token):
@@ -212,17 +259,10 @@ class DjTXT:
                 return not re.search(regex[1], raw_token)
         return True
 
-    def debug(self):
-        self.tokenize()
-        self.parse()
-        return "\n".join([repr(line) for line in self.lines])
-
 
 class DjHTML(DjTXT):
     """
-    This mode is the entrypoint of DjHTML. Usage:
-
-    >>> DjHTML(input_string).indent(tabwidth=4)
+    Mode for indenting HTML.
 
     """
 

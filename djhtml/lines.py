@@ -5,6 +5,11 @@ class Line:
     """
 
     def __init__(self, tokens=None, level=0, offset=0, ignore=False):
+        """
+        Lines are currently never instantiated with arguments, but
+        that doesn't mean they can't.
+
+        """
         self.tokens = tokens or []
         self.level = level
         self.offset = offset
@@ -12,7 +17,7 @@ class Line:
 
     def append(self, token):
         """
-        Append tokens to the line.
+        Append token to line.
 
         """
         self.tokens.append(token)
@@ -20,29 +25,29 @@ class Line:
     @property
     def text(self):
         """
-        The text of this line without leading/trailing spaces.
+        The text of this line including the original
+        leading/trailing spaces.
 
         """
-        return "".join([str(token) for token in self.tokens]).strip()
+        return "".join([token.text for token in self.tokens])
 
     def indent(self, tabwidth):
         """
-        The final, indented text of this line. Make sure to set the level
-        and optionally offset before calling this method.
+        The final, indented text of this line.
 
         """
         if self.ignore:
-            return "".join([str(token) for token in self.tokens])
+            return self.text
         if self.text:
             spaces = tabwidth * self.level + self.offset
-            return " " * spaces + self.text
+            return " " * spaces + self.text.strip()
         return ""
 
     def __bool__(self):
         return bool(self.tokens)
 
     def __len__(self):
-        return len(self.text)
+        return len(self.text.strip())
 
     def __repr__(self):
         kwargs = ""

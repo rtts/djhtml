@@ -7,6 +7,12 @@ Passing "-" as the filename will read from standard input and write to
 standard output. Example usage:
 
     $ djhtml - < input.html > output.html
+
+Passing a directory name will recurse into the directory and format
+all files with typical extensions. For more fine-grained control of
+which files get processed, use external tools like find, xargs or
+pre-commit.
+
 """
 
 import sys

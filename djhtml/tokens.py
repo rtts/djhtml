@@ -13,15 +13,20 @@ class Token:
         def __init__(
             self, text, *, mode, level=0, relative=0, absolute=0, ignore=False
         ):
+            """
+            Tokens must have a text and a mode class. The level
+            represents the line level of opening tokens and is set
+            afterwards by the parser. This violates the principle of
+            encapsulation, but makes sense because the line level can
+            only be determined after the tokenization is complete.
+
+            """
             self.text = text
             self.mode = mode
             self.level = level
             self.relative = relative
             self.absolute = absolute
             self.ignore = ignore
-
-        def __str__(self):
-            return self.text
 
         def __repr__(self):
             kwargs = f", mode={self.mode.__name__}"
