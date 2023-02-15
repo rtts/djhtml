@@ -206,6 +206,7 @@ class DjTXT(BaseMode):
         # token_name: (regex_if_block, regex_if_not_block)
         "set": (None, " = "),
         "video": (" as ", None),
+        "placeholder": (" or ", None),
     }
     FMT_ON = r"{# fmt:on #}"
     FMT_OFF = r"{# fmt:off #}"
