@@ -300,3 +300,33 @@ return 42;
     bar //     var a = 1;
     baz // }
 </script>
+
+
+<!-- Multi-line variable assignment -->
+<script>
+    var a = 1,
+        b = 2,
+        c = 3;
+    let a = 1
+      , b = 2
+      , c = 3
+    ;
+    const a = 1
+        , b = 2
+        , c = 3;
+    d = 4
+
+    const func = function() {
+        a = 1
+        b = 2
+        c = 3
+    }
+    const func1 = function() { return 1 },
+          func2 = function() {
+        const a = 1,
+              b = 2,
+              c = 3
+        return b
+    },
+          func3 = function() { return 3 };
+</script>

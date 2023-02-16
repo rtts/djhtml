@@ -404,15 +404,38 @@ class DjJS(DjTXT):
         r"`.*?`",
         r"`",
         r"[\{\[\(\)\]\}]",
+        r"var ",
+        r"let ",
+        r"const ",
+        r";",
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.haskell = False
+        self.haskell_re = re.compile(r" *, [^ ]+ *=")
+        self.variable_re = re.compile(r" *[^ ]+ *=")
 
     def create_token(self, raw_token, src, line):
         mode = self
 
+        if (
+            not len(line)
+            and not self.haskell_re.match(raw_token)
+            and not self.variable_re.match(raw_token)
+        ):
+            self.offsets["absolute"] = 0
+
         if raw_token in "{[(":
+            self.previous_offsets.append(self.offsets["absolute"])
+            self.offsets["absolute"] = 0
             token = Token.Open(raw_token, mode=DjJS, **self.offsets)
         elif raw_token in ")]}":
             token = Token.Close(raw_token, mode=DjJS, **self.offsets)
+            try:
+                self.offsets["absolute"] = self.previous_offsets.pop()
+            except IndexError:
+                self.offsets["absolute"] = 0
         elif raw_token == "`":
             token, mode = Token.Open(raw_token, mode=DjJS, ignore=True), Comment(
                 "`", mode=DjJS, return_mode=self
@@ -421,12 +444,24 @@ class DjJS(DjTXT):
             token, mode = Token.Open(raw_token, mode=DjJS, ignore=True), Comment(
                 r"\*/", mode=DjJS, return_mode=self
             )
-        elif not line and raw_token.lstrip().startswith("."):
+        elif not len(line) and raw_token.lstrip().startswith("."):
             self.offsets["relative"] = 1
             token = Token.Text(raw_token, mode=DjJS, **self.offsets)
         elif raw_token.lstrip().startswith(("case ", "default:")):
             token = Token.OpenDouble(raw_token, mode=DjJS)
             return token, mode
+        elif not len(line) and raw_token in ["var ", "let ", "const "]:
+            self.haskell = False
+            token = Token.Text(raw_token, mode=DjJS, **self.offsets)
+            self.offsets["absolute"] = len(raw_token)
+        elif not len(line) and not self.haskell and self.haskell_re.match(raw_token):
+            self.haskell = True
+            self.offsets["absolute"] -= 2
+            token = Token.Text(raw_token, mode=DjJS, **self.offsets)
+        elif raw_token == ";":
+            self.haskell = False
+            self.offsets["absolute"] = 0
+            token = Token.Text(raw_token, mode=DjJS, **self.offsets)
         elif raw_token == "</script>":
             token, mode = (
                 Token.Close(raw_token, mode=self.return_mode.__class__),
