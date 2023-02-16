@@ -396,13 +396,14 @@ class DjJS(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [
         r"</script>",
+        r"\\.?",
+        r"//.*",
+        r"/\*",
         r'".*?"',
         r"'.*?'",
         r"`.*?`",
         r"`",
         r"[\{\[\(\)\]\}]",
-        r"//.*",
-        r"/\*",
     ]
 
     def create_token(self, raw_token, src, line):

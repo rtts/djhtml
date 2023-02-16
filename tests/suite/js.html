@@ -285,3 +285,18 @@ return 42;
         }
     </script>
 </head>
+
+
+<!-- Single-line comments -->
+<script>
+    // The following does not contain a comment
+    wsHost = (/^wss?:\/\//i.test(me._host) ? '' : me._protocol) + me._host;
+
+    foo; // This is a comment
+    bar //This too
+    baz//Even this
+
+    foo // function() {
+    bar //     var a = 1;
+    baz // }
+</script>
