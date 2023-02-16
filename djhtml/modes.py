@@ -118,7 +118,6 @@ class BaseMode:
             for token in line.tokens:
                 opening_token = None
                 if stack:
-
                     # When a dedenting token is found, pop the
                     # corresponding opening token from the stack.
                     if token.dedents:
@@ -218,7 +217,11 @@ class DjTXT(BaseMode):
         if tag := re.match(self.OPENING_TAG, raw_token):
             name = tag.group(1)
             if name in self.COMMENT_TAGS:
-                token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True,), Comment(
+                token, mode = Token.Open(
+                    raw_token,
+                    mode=DjTXT,
+                    ignore=True,
+                ), Comment(
                     r"{%[-\+]? *end" + name + r"(?: .*?|)%}",
                     mode=DjTXT,
                     return_mode=self,
