@@ -10,14 +10,14 @@ class BaseMode:
 
     """
 
-    def __init__(self, source="", return_mode=None):
+    def __init__(self, source=None, return_mode=None):
         """
         Instantiate with source text before calling indent(), or
         with the return_mode when invoked from within another mode.
 
         """
         assert type(self) is not BaseMode
-        assert source or return_mode
+        assert source is not None or return_mode
 
         self.source = source
         self.return_mode = return_mode or self
