@@ -10,6 +10,8 @@ class BaseMode:
 
     """
 
+    MAX_LINE_LENGTH = 10_000
+
     def __init__(self, source=None, return_mode=None):
         """
         Instantiate with source text before calling indent(), or
@@ -57,6 +59,9 @@ class BaseMode:
         src = self.source
 
         while True:
+            if src.find("\n") > mode.MAX_LINE_LENGTH:
+                raise MaxLineLengthExceeded
+
             try:
                 # Split the source at the first occurrence of one of
                 # the current mode's raw tokens.
@@ -554,6 +559,10 @@ class InsideHTMLTag(DjTXT):
             token, mode = super().create_token(raw_token, src, line)
 
         return token, mode
+
+
+class MaxLineLengthExceeded(Exception):
+    pass
 
 
 def compile_re(raw_tokens):

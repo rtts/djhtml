@@ -60,6 +60,10 @@ def main():
         # Indent input file
         try:
             result = Mode(source).indent(options.tabwidth)
+        except modes.MaxLineLengthExceeded:
+            problematic_files += 1
+            _error(f"Maximum line length exceeded in {filename}")
+            continue
         except Exception:
             _error(
                 f"Fatal error while processing {filename}\n\n"
