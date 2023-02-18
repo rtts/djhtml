@@ -41,6 +41,16 @@ class Line:
             if token.text.strip():
                 return token
 
+    @property
+    def indents(self):
+        """
+        Whether this line has more opening than closing tokens.
+
+        """
+        return len([token for token in self.tokens if token.indents]) > len(
+            [token for token in self.tokens if token.dedents]
+        )
+
     def indent(self, tabwidth):
         """
         The final, indented text of this line.
@@ -53,11 +63,15 @@ class Line:
             return " " * spaces + self.text.strip()
         return ""
 
-    def __bool__(self):
-        return bool(self.tokens)
-
     def __len__(self):
-        return len(self.text.strip())
+        """
+        The length of the line (so far), excluding the whitespace
+        at the beginning. Be careful calling len() because it might
+        result in trailing spaces being counted that will be removed
+        by indent().
+
+        """
+        return len(self.text.lstrip())
 
     def __repr__(self):
         kwargs = ""

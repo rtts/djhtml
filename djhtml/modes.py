@@ -301,7 +301,7 @@ class DjHTML(DjTXT):
 
         if raw_token == "<":
             if tag := re.match(r"([\w\-\.:]+)", src):
-                token, mode = Token.Open(raw_token, mode=DjHTML), InsideHTMLTag(
+                token, mode = Token.Text(raw_token, mode=DjHTML), InsideHTMLTag(
                     tag[1], line, self
                 )
             else:
@@ -356,7 +356,7 @@ class DjCSS(DjTXT):
             token = Token.Close(raw_token, mode=DjCSS, **self.offsets)
         elif raw_token.endswith(":"):
             token = Token.Text(raw_token, mode=DjCSS, **self.offsets)
-            self.offsets["absolute"] = len(line.text.lstrip()) + len(raw_token) + 1
+            self.offsets["absolute"] = len(line) + len(raw_token) + 1
         elif raw_token == ";":
             self.offsets["absolute"] = 0
             token = Token.Text(raw_token, mode=DjCSS, **self.offsets)
@@ -407,7 +407,7 @@ class DjJS(DjTXT):
         mode = self
 
         # Reset absolute offset in almost all cases
-        if not len(line) and not self.haskell_re.match(raw_token):
+        if not line and not self.haskell_re.match(raw_token):
             if (
                 not self.variable_re.match(raw_token)
                 or not self.previous_line_ended_with_comma
@@ -432,7 +432,7 @@ class DjJS(DjTXT):
             token, mode = Token.Open(raw_token, mode=DjJS, ignore=True), Comment(
                 r"\*/", mode=DjJS, return_mode=self
             )
-        elif not len(line) and raw_token.lstrip().startswith("."):
+        elif not line and raw_token.lstrip().startswith("."):
             self.offsets["relative"] = 1
             token = Token.Text(raw_token, mode=DjJS, **self.offsets)
         elif raw_token.lstrip().startswith(("case ", "default:")):
@@ -441,9 +441,9 @@ class DjJS(DjTXT):
         elif raw_token in ["var ", "let ", "const "]:
             self.haskell = False
             token = Token.Text(raw_token, mode=DjJS, **self.offsets)
-            self.offsets["absolute"] = len(line.text.lstrip()) + len(raw_token)
+            self.offsets["absolute"] = len(line) + len(raw_token)
         elif (
-            not len(line)
+            not line
             and not self.haskell
             and not self.previous_line_ended_with_comma
             and self.haskell_re.match(raw_token)
@@ -460,7 +460,7 @@ class DjJS(DjTXT):
             token, mode = super().create_token(raw_token, src, line)
 
         # Reset relative offset after creating first token in line.
-        if not len(line):
+        if not line:
             self.offsets["relative"] = 0
 
         if raw_token.rstrip().endswith(","):
@@ -505,7 +505,9 @@ class InsideHTMLTag(DjTXT):
         self.return_mode = return_mode
         self.token_re = compile_re(self.RAW_TOKENS)
         self.inside_attr = False
-        self.offsets = dict(relative=-1, absolute=len(line) + len(tagname) + 2)
+        self.offsets = dict(
+            relative=-1 if line.indents else 0, absolute=len(line) + len(tagname) + 2
+        )
         self.previous_offsets = []
 
         # Pff...
@@ -514,10 +516,9 @@ class InsideHTMLTag(DjTXT):
     def create_token(self, raw_token, src, line):
         mode = self
 
-        if line:
-            self.additional_offset += len(raw_token)
-        else:
+        if not line:
             self.additional_offset = 0
+        self.additional_offset += len(raw_token)
 
         if "text/template" in raw_token:
             self.tagname = ""
@@ -534,21 +535,21 @@ class InsideHTMLTag(DjTXT):
                 self.offsets["absolute"] += self.additional_offset
                 token = Token.Text(raw_token, mode=InsideHTMLTag, **self.offsets)
         elif not self.inside_attr and raw_token == "/>":
-            token, mode = Token.Close(raw_token, mode=DjHTML), self.return_mode
+            token, mode = Token.Text(raw_token, mode=DjHTML), self.return_mode
         elif not self.inside_attr and raw_token == ">":
             if self.tagname.lower() in DjHTML.IGNORE_TAGS:
-                token, mode = Token.Close(raw_token, mode=DjHTML), self.return_mode
+                token, mode = Token.Text(raw_token, mode=DjHTML), self.return_mode
             elif self.tagname == "style":
-                token, mode = Token.CloseAndOpen(raw_token, mode=DjHTML), DjCSS(
+                token, mode = Token.Open(raw_token, mode=DjHTML), DjCSS(
                     return_mode=self.return_mode
                 )
             elif self.tagname == "script":
-                token, mode = Token.CloseAndOpen(raw_token, mode=DjHTML), DjJS(
+                token, mode = Token.Open(raw_token, mode=DjHTML), DjJS(
                     return_mode=self.return_mode
                 )
             else:
                 token, mode = (
-                    Token.CloseAndOpen(raw_token, mode=DjHTML),
+                    Token.Open(raw_token, mode=DjHTML),
                     self.return_mode,
                 )
         else:
