@@ -394,7 +394,6 @@ class DjJS(DjTXT):
         r"var ",
         r"let ",
         r"const ",
-        r";",
     ]
 
     def __init__(self, *args, **kwargs):
@@ -402,16 +401,18 @@ class DjJS(DjTXT):
         self.haskell = False
         self.haskell_re = re.compile(r" *, [^ ]+ *=")
         self.variable_re = re.compile(r" *[^ ]+ *=")
+        self.previous_line_ended_with_comma = False
 
     def create_token(self, raw_token, src, line):
         mode = self
 
-        if (
-            not len(line)
-            and not self.haskell_re.match(raw_token)
-            and not self.variable_re.match(raw_token)
-        ):
-            self.offsets["absolute"] = 0
+        # Reset absolute offset in almost all cases
+        if not len(line) and not self.haskell_re.match(raw_token):
+            if (
+                not self.variable_re.match(raw_token)
+                or not self.previous_line_ended_with_comma
+            ):
+                self.offsets["absolute"] = 0
 
         if raw_token in "{[(":
             self.previous_offsets.append(self.offsets["absolute"])
@@ -437,17 +438,18 @@ class DjJS(DjTXT):
         elif raw_token.lstrip().startswith(("case ", "default:")):
             token = Token.OpenDouble(raw_token, mode=DjJS)
             return token, mode
-        elif not len(line) and raw_token in ["var ", "let ", "const "]:
+        elif raw_token in ["var ", "let ", "const "]:
             self.haskell = False
             token = Token.Text(raw_token, mode=DjJS, **self.offsets)
-            self.offsets["absolute"] = len(raw_token)
-        elif not len(line) and not self.haskell and self.haskell_re.match(raw_token):
+            self.offsets["absolute"] = len(line.text.lstrip()) + len(raw_token)
+        elif (
+            not len(line)
+            and not self.haskell
+            and not self.previous_line_ended_with_comma
+            and self.haskell_re.match(raw_token)
+        ):
             self.haskell = True
             self.offsets["absolute"] -= 2
-            token = Token.Text(raw_token, mode=DjJS, **self.offsets)
-        elif raw_token == ";":
-            self.haskell = False
-            self.offsets["absolute"] = 0
             token = Token.Text(raw_token, mode=DjJS, **self.offsets)
         elif raw_token == "</script>":
             token, mode = (
@@ -458,8 +460,13 @@ class DjJS(DjTXT):
             token, mode = super().create_token(raw_token, src, line)
 
         # Reset relative offset after creating first token in line.
-        if not line:
+        if not len(line):
             self.offsets["relative"] = 0
+
+        if raw_token.rstrip().endswith(","):
+            self.previous_line_ended_with_comma = True
+        else:
+            self.previous_line_ended_with_comma = False
 
         return token, mode
 
