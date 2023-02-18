@@ -337,7 +337,7 @@ class DjCSS(DjTXT):
         r"/\*",
         r'".+"',
         r"'.+'",
-        r"[\w-]+:",
+        r"[\w-]+: ",
         r";",
     ]
 
@@ -348,15 +348,13 @@ class DjCSS(DjTXT):
             token = Token.Open(raw_token, mode=DjCSS, **self.offsets)
             if raw_token == "{":
                 self.offsets["absolute"] = 0
-                if first_token := line.first_token:
-                    first_token.absolute = 0
         elif raw_token in "})":
             if raw_token == "}":
                 self.offsets["absolute"] = 0
             token = Token.Close(raw_token, mode=DjCSS, **self.offsets)
-        elif raw_token.endswith(":"):
+        elif raw_token.endswith(": "):
             token = Token.Text(raw_token, mode=DjCSS, **self.offsets)
-            self.offsets["absolute"] = len(line) + len(raw_token) + 1
+            self.offsets["absolute"] = len(line) + len(raw_token)
         elif raw_token == ";":
             self.offsets["absolute"] = 0
             token = Token.Text(raw_token, mode=DjCSS, **self.offsets)

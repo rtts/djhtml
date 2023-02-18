@@ -147,10 +147,18 @@
     body {
         font-family: Arial,
                      Helvetica;
+        a:link,
         a:hover,
         a:active {
             color: red;
         }
+    }
+
+    /* Since DjCSS expects a space between the property and the value,
+       the following is currently broken */
+    body {
+        font-family:Arial,
+        Helvetica;
     }
 </style>
 

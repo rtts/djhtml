@@ -32,16 +32,6 @@ class Line:
         return "".join([token.text for token in self.tokens])
 
     @property
-    def first_token(self):
-        """
-        The first non-empty token of this line.
-
-        """
-        for token in self.tokens:
-            if token.text.strip():
-                return token
-
-    @property
     def indents(self):
         """
         Whether this line has more opening than closing tokens.
@@ -58,9 +48,8 @@ class Line:
         """
         if self.ignore:
             return self.text
-        if self.text:
-            spaces = tabwidth * self.level + self.offset
-            return " " * spaces + self.text.strip()
+        if text := self.text.strip():
+            return " " * (tabwidth * self.level + self.offset) + text
         return ""
 
     def __len__(self):
