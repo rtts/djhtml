@@ -435,10 +435,15 @@ class DjJS(DjTXT):
             token, mode = Token.Open(raw_token, mode=DjJS, ignore=True), Comment(
                 r"\*/", mode=DjJS, return_mode=self
             )
+        elif raw_token.lstrip().startswith("..."):
+            token = Token.Text(raw_token, mode=DjJS, **self.offsets)
         elif not line and raw_token.lstrip().startswith("."):
             self.offsets["relative"] = 1
             token = Token.Text(raw_token, mode=DjJS, **self.offsets)
-        elif raw_token.lstrip().startswith(("case ", "default:")):
+        elif not line and raw_token.lstrip().startswith("case "):
+            token = Token.OpenDouble(raw_token, mode=DjJS)
+            return token, mode
+        elif not line and raw_token.lstrip() == "default:":
             token = Token.OpenDouble(raw_token, mode=DjJS)
             return token, mode
         elif raw_token in ["var ", "let ", "const "]:

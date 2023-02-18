@@ -159,9 +159,12 @@ return 42;
             console.log('Rejected');
             break;
         }
-        default: {
-            console.log('Default');
-        }
+
+            // This one is broken because dictionary keys can also be
+            // called "default"...
+            default: {
+                console.log('Default');
+            }
     }
 </script>
 
@@ -334,4 +337,15 @@ return 42;
         b = 2,
     {% endif %}
     c = 3;
+</script>
+
+
+<!-- Things that look like case statements, and the "spread" operator -->
+<script>
+    var case = "foo"
+    var dict = {
+        case: "bar",
+        default: "baz",
+        ...params,
+    }
 </script>
