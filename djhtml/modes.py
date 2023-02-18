@@ -437,7 +437,7 @@ class DjJS(DjTXT):
             )
         elif raw_token.lstrip().startswith("..."):
             token = Token.Text(raw_token, mode=DjJS, **self.offsets)
-        elif not line and raw_token.lstrip().startswith("."):
+        elif not line and raw_token.lstrip().startswith((".", ": ", "? ")):
             self.offsets["relative"] = 1
             token = Token.Text(raw_token, mode=DjJS, **self.offsets)
         elif not line and raw_token.lstrip().startswith("case "):
