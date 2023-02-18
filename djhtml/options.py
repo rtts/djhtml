@@ -30,8 +30,8 @@ parser.add_argument(
     "--tabwidth",
     metavar="N",
     type=int,
-    default=4,
-    help="tabwidth (default is 4)",
+    default=0,
+    help="tabwidth (default is to guess)",
 )
 parser.add_argument(
     "input_filenames",

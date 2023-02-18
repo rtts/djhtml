@@ -66,6 +66,11 @@ multi-line attribute values like this:
 </blockquote>
 ```
 
+## New! Tabwidth guessing
+
+Without the `-t` / `--tabwidth` argument, DjHTML no longer defaults to
+a tabwidth of 4 but instead guesses the correct tabwidth.
+
 
 ## New! Django middleware
 

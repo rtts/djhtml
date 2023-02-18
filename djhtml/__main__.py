@@ -57,9 +57,25 @@ def main():
             _error(e)
             continue
 
+        # Guess tabwidth
+        if not options.tabwidth:
+            diff = 0
+            probabilities = [0] * 8
+            for line in source.split("\n"):
+                count = 0
+                for char in line:
+                    if char == " ":
+                        count += 1
+                    else:
+                        break
+                if 0 < abs(count - diff) < 8:
+                    probabilities[abs(count - diff)] += 1
+                diff = count
+            guess = probabilities.index(max(probabilities))
+
         # Indent input file
         try:
-            result = Mode(source).indent(options.tabwidth)
+            result = Mode(source).indent(options.tabwidth or guess or 4)
         except modes.MaxLineLengthExceeded:
             problematic_files += 1
             _error(f"Maximum line length exceeded in {filename}")
