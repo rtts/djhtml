@@ -335,44 +335,31 @@ class DjCSS(DjTXT):
         r"</style>",
         r"[\{\(\)\}]",
         r"/\*",
-        r"[\w-]+: ",
+        r'".+"',
+        r"'.+'",
+        r"[\w-]+:",
         r";",
     ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.inside_block = False
 
     def create_token(self, raw_token, src, line):
         mode = self
 
         if raw_token in "{(":
-            self.previous_offsets.append(self.offsets["relative"])
             token = Token.Open(raw_token, mode=DjCSS, **self.offsets)
-            self.offsets["relative"] = 0
             if raw_token == "{":
-                self.inside_block = True
-        elif raw_token in "})":
-            if raw_token == "}" and self.offsets["absolute"]:
                 self.offsets["absolute"] = 0
-                self.offsets["relative"] = 0
-                token = Token.CloseDouble(raw_token, mode=DjCSS, **self.offsets)
-            else:
-                token = Token.Close(raw_token, mode=DjCSS, **self.offsets)
-                try:
-                    self.offsets["relative"] = self.previous_offsets.pop()
-                except IndexError:
-                    self.offsets["relative"] = 0
+                if first_token := line.first_token:
+                    first_token.absolute = 0
+        elif raw_token in "})":
             if raw_token == "}":
-                self.inside_block = False
-        elif self.inside_block and raw_token.endswith(": "):
-            token = Token.Open(raw_token, mode=DjCSS, **self.offsets)
-            self.offsets["relative"] = -1
-            self.offsets["absolute"] = len(raw_token)
-        elif raw_token == ";":
-            self.offsets["relative"] = 0
-            self.offsets["absolute"] = 0
+                self.offsets["absolute"] = 0
             token = Token.Close(raw_token, mode=DjCSS, **self.offsets)
+        elif raw_token.endswith(":"):
+            token = Token.Text(raw_token, mode=DjCSS, **self.offsets)
+            self.offsets["absolute"] = len(line) + len(raw_token) + 1
+        elif raw_token == ";":
+            self.offsets["absolute"] = 0
+            token = Token.Text(raw_token, mode=DjCSS, **self.offsets)
         elif raw_token == "/*":
             token, mode = Token.Open(raw_token, mode=DjCSS, ignore=True), Comment(
                 r"\*/", mode=DjCSS, return_mode=self

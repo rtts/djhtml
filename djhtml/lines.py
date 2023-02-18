@@ -31,6 +31,16 @@ class Line:
         """
         return "".join([token.text for token in self.tokens])
 
+    @property
+    def first_token(self):
+        """
+        The first non-empty token of this line.
+
+        """
+        for token in self.tokens:
+            if token.text.strip():
+                return token
+
     def indent(self, tabwidth):
         """
         The final, indented text of this line.

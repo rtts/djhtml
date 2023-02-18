@@ -110,3 +110,46 @@
         }
     }
 </style>
+
+
+<!-- Selector weirdness -->
+<style>
+    blockquote:before {
+        content: "text-align: right";
+    }
+    @media(text-align: right) {
+        a:hover, a:active {
+            text-decoration:none
+        }
+        p::first-line {
+            color: red;
+        }
+    }
+</style>
+
+
+<!-- Nested SCSS with multi-line statements -->
+<style>
+    a:hover, a:active {
+        foo: bar,
+             baz;
+
+        a:hover, a:active {
+            foo: bar
+                 baz
+        }
+    }
+</style>
+
+
+<!-- The difference between multi-line statements and nested selectors -->
+<style>
+    body {
+        font-family: Arial,
+                     Helvetica;
+        a:hover,
+        a:active {
+            color: red;
+        }
+    }
+</style>
