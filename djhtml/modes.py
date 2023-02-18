@@ -356,7 +356,7 @@ class DjCSS(DjTXT):
             token = Token.Close(raw_token, mode=DjCSS, **self.offsets)
         elif raw_token.endswith(":"):
             token = Token.Text(raw_token, mode=DjCSS, **self.offsets)
-            self.offsets["absolute"] = len(line) + len(raw_token) + 1
+            self.offsets["absolute"] = len(line.text.lstrip()) + len(raw_token) + 1
         elif raw_token == ";":
             self.offsets["absolute"] = 0
             token = Token.Text(raw_token, mode=DjCSS, **self.offsets)
