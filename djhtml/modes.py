@@ -401,8 +401,8 @@ class DjJS(DjTXT):
         super().__init__(*args, **kwargs)
         self.previous_offsets = []
         self.haskell = False
-        self.haskell_re = re.compile(r" *, ([\$\w-]+ *=|[\$\w-]+;?)")
-        self.variable_re = re.compile(r" *([\$\w-]+ *=|[\$\w-]+;?)")
+        self.haskell_re = re.compile(r"^ *, ([\$\w-]+ *=|[\$\w-]+;?)")
+        self.variable_re = re.compile(r"^ *([\$\w-]+ *=|[\$\w-]+;?)")
         self.previous_line_ended_with_comma = False
 
     def create_token(self, raw_token, src, line):
