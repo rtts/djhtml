@@ -28,9 +28,6 @@ class BaseMode:
         # To keep track of the current offsets.
         self.offsets = dict(relative=0, absolute=0)
 
-        # To be used as a stack by some modes.
-        self.previous_offsets = []
-
     def indent(self, tabwidth):
         """
         Return the indented text as a single string.
@@ -232,19 +229,13 @@ class DjTXT(BaseMode):
                     return_mode=self,
                 )
             elif self._has_closing_token(name, raw_token, src):
-                self.previous_offsets.append(self.offsets["relative"])
                 token = Token.Open(raw_token, mode=DjTXT, **self.offsets)
-                self.offsets["relative"] = 0
             elif name in self.CLOSING_AND_OPENING_TAGS:
                 token = Token.CloseAndOpen(raw_token, mode=DjTXT, **self.offsets)
             elif name.startswith("end"):
                 token = Token.Close(raw_token, mode=DjTXT, **self.offsets)
-                try:
-                    self.offsets["relative"] = self.previous_offsets.pop()
-                except IndexError:
-                    self.offsets["relative"] = 0
             else:
-                token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
+                token = Token.Text(raw_token, mode=DjTXT)
         elif re.match(self.FMT_OFF, raw_token):
             token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
                 self.FMT_ON, mode=DjTXT, return_mode=self
@@ -397,10 +388,12 @@ class DjJS(DjTXT):
         r"var ",
         r"let ",
         r"const ",
+        r"if ",
     ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.previous_offsets = []
         self.haskell = False
         self.haskell_re = re.compile(r" *, ([\$\w]+ *=|[\$\w]+;?)")
         self.variable_re = re.compile(r" *([\$\w]+ *=|[\$\w]+;?)")
@@ -418,15 +411,15 @@ class DjJS(DjTXT):
                 self.offsets["absolute"] = 0
 
         if raw_token in "{[(":
-            self.previous_offsets.append(self.offsets["absolute"])
-            self.offsets["absolute"] = 0
-            token = Token.Open(raw_token, mode=DjJS, **self.offsets)
+            self.previous_offsets.append(self.offsets.copy())
+            self.offsets = dict(relative=0, absolute=0)
+            token = Token.Open(raw_token, mode=DjJS)
         elif raw_token in ")]}":
-            token = Token.Close(raw_token, mode=DjJS, **self.offsets)
+            token = Token.Close(raw_token, mode=DjJS)
             try:
-                self.offsets["absolute"] = self.previous_offsets.pop()
+                self.offsets = self.previous_offsets.pop()
             except IndexError:
-                self.offsets["absolute"] = 0
+                self.offsets = dict(relative=0, absolute=0)
         elif raw_token == "`":
             token, mode = Token.Open(raw_token, mode=DjJS, ignore=True), Comment(
                 "`", mode=DjJS, return_mode=self
@@ -436,10 +429,12 @@ class DjJS(DjTXT):
                 r"\*/", mode=DjJS, return_mode=self
             )
         elif raw_token.lstrip().startswith("..."):
-            token = Token.Text(raw_token, mode=DjJS, **self.offsets)
+            token = Token.Text(raw_token, mode=DjJS)
         elif not line and raw_token.lstrip().startswith((".", ": ", "? ")):
+            token = Token.Text(raw_token, mode=DjJS, relative=1)
+        elif not line and raw_token == "if ":
+            token = Token.Text(raw_token, mode=DjJS)
             self.offsets["relative"] = 1
-            token = Token.Text(raw_token, mode=DjJS, **self.offsets)
         elif not line and raw_token.lstrip().startswith("case "):
             token = Token.OpenDouble(raw_token, mode=DjJS)
             return token, mode
@@ -448,7 +443,7 @@ class DjJS(DjTXT):
             return token, mode
         elif raw_token in ["var ", "let ", "const "]:
             self.haskell = False
-            token = Token.Text(raw_token, mode=DjJS, **self.offsets)
+            token = Token.Text(raw_token, mode=DjJS)
             self.offsets["absolute"] = len(line) + len(raw_token)
         elif (
             not line
@@ -467,8 +462,8 @@ class DjJS(DjTXT):
         else:
             token, mode = super().create_token(raw_token, src, line)
 
-        # Reset relative offset after creating first token in line.
-        if not line:
+        # Reset relative offset in almost all cases
+        if raw_token != "if " and raw_token.strip() != ")":
             self.offsets["relative"] = 0
 
         if raw_token.rstrip().endswith(","):
@@ -516,7 +511,6 @@ class InsideHTMLTag(DjTXT):
         self.offsets = dict(
             relative=-1 if line.indents else 0, absolute=len(line) + len(tagname) + 2
         )
-        self.previous_offsets = []
 
         # Pff...
         self.additional_offset = -len(tagname) - 1

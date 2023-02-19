@@ -365,3 +365,20 @@ return 42;
     var bar = "\"{"
     var baz = `\`{`
 </script>
+
+
+<!-- Single-line if statements -->
+<script>
+    if (foo)
+        bar
+    baz
+
+    if (
+        foo &&
+        bar
+    )
+        baz
+
+    if (foo) return
+    bar
+</script>
