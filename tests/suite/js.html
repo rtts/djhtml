@@ -382,3 +382,29 @@ return 42;
     if (foo) return
     bar
 </script>
+
+
+<!-- Multi-line variables and dictionaries -->
+<script>
+    var foo =
+        bar
+
+    const func =
+        function() {
+            return
+        })
+
+    let dict =
+        {
+            foo:
+                bar
+        }
+
+    // This one is broken
+    let dict = {
+        default:
+            foo
+            bar:
+                baz
+    }
+</script>
