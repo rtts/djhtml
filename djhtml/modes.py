@@ -528,7 +528,7 @@ class InsideHTMLTag(DjTXT):
 
     """
 
-    RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>", r"[^ ='\">/]+=", r'"']
+    RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>", r"[^ ='\">/]+=", r'"', r"'"]
 
     def __init__(self, tagname, line, return_mode):
         self.tagname = tagname
@@ -552,14 +552,15 @@ class InsideHTMLTag(DjTXT):
         if "text/template" in raw_token:
             self.tagname = ""
 
-        if raw_token == '"':
+        if raw_token in ['"', "'"]:
             if self.inside_attr:
-                self.inside_attr = False
-                self.offsets["absolute"] -= 1
                 token = Token.Text(raw_token, mode=InsideHTMLTag, **self.offsets)
-                self.offsets["absolute"] = self.previous_offset
+                if self.inside_attr == raw_token:
+                    self.inside_attr = False
+                    token.absolute = self.offsets["absolute"] - 1
+                    self.offsets["absolute"] = self.previous_offset
             else:
-                self.inside_attr = True
+                self.inside_attr = raw_token
                 self.previous_offset = self.offsets["absolute"]
                 self.offsets["absolute"] += self.additional_offset
                 token = Token.Text(raw_token, mode=InsideHTMLTag, **self.offsets)
