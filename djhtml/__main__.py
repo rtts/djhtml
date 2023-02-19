@@ -66,6 +66,8 @@ def main():
                 for char in line:
                     if char == " ":
                         count += 1
+                    elif char == "\t":
+                        count += 4
                     else:
                         break
                 if 0 < abs(count - diff) < 8:
