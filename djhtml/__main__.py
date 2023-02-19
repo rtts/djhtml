@@ -70,7 +70,7 @@ def main():
                         count += 4
                     else:
                         break
-                if count and 0 < abs(count - diff) < 8:
+                if count and abs(count - diff) in [2, 4, 8]:
                     probabilities[abs(count - diff)] += 1
                 diff = count
             guess = probabilities.index(max(probabilities))
