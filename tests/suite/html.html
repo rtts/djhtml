@@ -320,6 +320,18 @@
                      id="4"/></div>
 
 
+<!-- Multi-line elements with template tags -->
+<a href=""
+   {% include "attrs.html" %}
+   class="
+          {% block classes %}
+              foo
+              bar
+          {% endblock %}
+         "
+/>
+
+
 <!-- The example from the README -->
 <blockquote cite="John Lennon"
             style="color: dimgray;

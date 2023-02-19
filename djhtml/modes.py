@@ -235,7 +235,7 @@ class DjTXT(BaseMode):
             elif name.startswith("end"):
                 token = Token.Close(raw_token, mode=DjTXT, **self.offsets)
             else:
-                token = Token.Text(raw_token, mode=DjTXT)
+                token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
         elif re.match(self.FMT_OFF, raw_token):
             token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
                 self.FMT_ON, mode=DjTXT, return_mode=self
