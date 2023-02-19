@@ -157,14 +157,12 @@ return 42;
         }
         case 'rejected': {
             console.log('Rejected');
+        }
+            break;
+        default: {
+            console.log('Default');
             break;
         }
-
-            // This one is broken because dictionary keys can also be
-            // called "default"...
-            default: {
-                console.log('Default');
-            }
     }
 </script>
 
@@ -331,6 +329,11 @@ return 42;
           func2 = function() { return 2 },
           func3 = function() { return 3 }
 
+    const foo = bar
+          baz = {
+        ...
+    }
+
     // We are not supporting madness like this
     const a = 1,
     {% if %}
@@ -345,7 +348,7 @@ return 42;
     var case = "foo"
     var dict = {
         case: "bar",
-        default: "baz",
+        "default:": "baz",
         ...params,
     }
 </script>
@@ -367,20 +370,40 @@ return 42;
 </script>
 
 
-<!-- Single-line if statements -->
+<!-- Single-line statements -->
 <script>
     if (foo)
         bar
-    baz
+
+    if (foo) return
+    bar
 
     if (
         foo &&
         bar
     )
         baz
+    else
+        return
 
-    if (foo) return
-    bar
+    if (foo)
+        if (bar)
+            if (baz)
+                return
+    else
+        console.log("Footgun detected!")
+
+    leitmotif ()
+    elsewhere ();
+    meanwhile (true)
+
+    while (true)
+        break
+
+    for (i=1, 1<10, i++)
+    {
+        break
+    }
 </script>
 
 
@@ -394,17 +417,11 @@ return 42;
             return
         })
 
-    let dict =
-        {
-            foo:
-                bar
-        }
-
-    // This one is broken
+    // Note that unquoted "default" is a reserved keyword
     let dict = {
-        default:
+        "default":
             foo
-            bar:
-                baz
+        bar:
+            baz
     }
 </script>
