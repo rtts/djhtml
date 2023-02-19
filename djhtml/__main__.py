@@ -60,7 +60,7 @@ def main():
         # Guess tabwidth
         if not options.tabwidth:
             diff = 0
-            probabilities = [0] * 8
+            probabilities = [0] * 9
             for line in source.split("\n"):
                 count = 0
                 for char in line:
