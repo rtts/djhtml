@@ -21,5 +21,11 @@ class TestSuite(unittest.TestCase):
     def _test_file(self, filename):
         with open(os.path.join(self.DIR, filename)) as f:
             expected_output = f.read()
-        actual_output = DjHTML(expected_output).indent(4)
+
+        # Indent the expected output to 0 (no indentation)
+        unindented = DjHTML(expected_output).indent(0)
+        self.assertNotEqual(unindented, expected_output)
+
+        # Re-indent the unindented output to 4
+        actual_output = DjHTML(unindented).indent(4)
         self.assertEqual(expected_output, actual_output)
