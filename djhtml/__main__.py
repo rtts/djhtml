@@ -93,8 +93,7 @@ def main():
         # Write output file
         if not options.check:
             if filename == "-":
-                if not options.quiet:
-                    print(result, end="")
+                print(result, end="")
             elif changed:
                 try:
                     with open(filename, "w") as output_file:
@@ -175,8 +174,7 @@ def _get_depth(line):
 
 
 def _info(msg):
-    if not options.quiet:
-        print(msg, file=sys.stderr)
+    print(msg, file=sys.stderr)
 
 
 def _error(msg):

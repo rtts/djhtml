@@ -2,7 +2,7 @@
 
 ***A pure-Python Django/Jinja template indenter without dependencies.***
 
-DjHTML indents mixed HTML/CSS/Javascript templates that contain
+DjHTML indents mixed HTML/CSS/JavaScript templates that contain
 [Django](https://docs.djangoproject.com/en/stable/ref/templates/language/)
 or [Jinja](https://jinja.palletsprojects.com/templates/) template
 tags. It works similar to other code-formatting tools such as

@@ -8,15 +8,33 @@ Options set by command-line arguments. Usage:
 
 import argparse
 import sys
+from importlib.metadata import version
 
 parser = argparse.ArgumentParser(
     description=(
-        "DjHTML is a fully automatic template indenter that works with mixed"
-        " HTML/CSS/Javascript templates that contain Django or Jinja template"
-        " tags. It works similar to other code-formatting tools such as Black and"
-        " interoperates nicely with pre-commit. Full documentation can be found at"
-        " https://github.com/rtts/djhtml"
+        """
+DjHTML indents mixed HTML/CSS/JavaScript templates that
+contain Django or Jinja template tags. It works similar to
+other code-formatting tools such as Black and interoperates
+nicely with pre-commit."""
     ),
+    epilog="Full documentation at https://github.com/rtts/djhtml",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    add_help=False,
+)
+parser.add_argument(
+    "-h",
+    "--help",
+    dest="show_help",
+    action="store_true",
+    help="show this help message and exit",
+)
+parser.add_argument(
+    "-v",
+    "--version",
+    dest="show_version",
+    action="store_true",
+    help="show version number and exit",
 )
 parser.add_argument(
     "-c",
@@ -24,29 +42,34 @@ parser.add_argument(
     action="store_true",
     help="check indentation without modifying files",
 )
-parser.add_argument("-q", "--quiet", action="store_true", help="be quiet")
 parser.add_argument(
     "-t",
     "--tabwidth",
     metavar="N",
     type=int,
     default=0,
-    help="tabwidth (default is to guess)",
+    help="tabwidth (the default is to guess)",
 )
 parser.add_argument(
     "input_filenames",
-    metavar="filename",
-    nargs="+",
-    help="input filenames (either paths or directories)",
+    metavar="SOURCE",
+    nargs="*",
+    help="file or directory name(s) to indent",
 )
-parser.add_argument("-d", "--debug", action="store_true", help="debug mode")
+parser.add_argument("-d", "--debug", action="store_true", help=argparse.SUPPRESS)
 parser.add_argument("-i", "--in-place", action="store_true", help=argparse.SUPPRESS)
 
 # Parse arguments and assign attributes to self
 self = sys.modules[__name__]
 args = parser.parse_args(namespace=self)
 
-if self.in_place:
+if show_version:
+    print(version("djhtml"))
+    sys.exit()
+elif show_help or not input_filenames:
+    parser.print_help()
+    sys.exit()
+elif in_place:
     sys.exit(
         """
 You have called DjHTML with the -i or --in-place argument which
