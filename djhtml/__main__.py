@@ -59,20 +59,14 @@ def main():
 
         # Guess tabwidth
         if not options.tabwidth:
-            diff = 0
+            prev = 0
             probabilities = [0] * 9
-            for line in source.split("\n"):
-                count = 0
-                for char in line:
-                    if char == " ":
-                        count += 1
-                    elif char == "\t":
-                        count += 4
-                    else:
-                        break
-                if count and abs(count - diff) in [2, 4, 8]:
-                    probabilities[abs(count - diff)] += 1
-                diff = count
+            for line in source.splitlines():
+                if line and not line.isspace():
+                    depth = _get_depth(line)
+                    if abs(depth - prev) in [2, 4, 8]:
+                        probabilities[abs(depth - prev)] += 1
+                    prev = depth
             guess = probabilities.index(max(probabilities))
 
         # Indent input file
@@ -166,6 +160,18 @@ def _verify_changed(source, result):
         if line.strip() != output_lines[line_nr].strip():
             raise IndentationError("Non-whitespace changes detected. Core dumped.")
     return changed
+
+
+def _get_depth(line):
+    count = 0
+    for char in line:
+        if char == " ":
+            count += 1
+        elif char == "\t":
+            count += 4
+        else:
+            break
+    return count
 
 
 def _info(msg):
