@@ -29,7 +29,15 @@ class DjHTMLMiddleware:
                     "Please load DjHTMLMiddleware _after_ CommonMiddleware (otherwise"
                     ' the "Content-Length" header will be incorrect)'
                 )
-            response.content = (
-                DjHTML(response.content.decode()).indent(TABWIDTH).encode()
-            )
+
+            response.content = "\n".join(
+                [
+                    line
+                    for line in DjHTML(response.content.decode())
+                    .indent(TABWIDTH)
+                    .splitlines()
+                    if line
+                ]
+            ).encode()
+
         return response
