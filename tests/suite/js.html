@@ -436,3 +436,20 @@ return 42;
             baz
     }
 </script>
+
+
+<!-- Expression literals -->
+<script>
+    re = /ab+c/
+    space_re = / foo /
+    single_re = /foo\/ + bar/
+    double_re = /foo/ + /bar/
+    look_like_comment = /\(//
+
+    // The following is known to be broken
+    const x = 42
+    const y = 7
+    const six = x / (function() { // comment
+    return y
+    })();
+</script>

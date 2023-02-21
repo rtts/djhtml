@@ -366,13 +366,13 @@ class DjJS(DjTXT):
     """
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [
-        r"\\.",
         r"//.*",
         r"/\*",
         r"[$\w-]+:",
         r'"(?:\\.|[^\\"])*"',  # "string"
         r"'(?:\\.|[^\\'])*'",  # 'string'
         r"`(?:\\.|[^\\`])*`",  # `string`
+        r"/(?:\\.|[^\\/\n])*/",  # /string/
         r"[{[()\]}]",
         r"var ",
         r"let ",
