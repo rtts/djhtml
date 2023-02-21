@@ -32,8 +32,8 @@ class Token:
             kwargs = f", mode={self.mode.__name__}"
             for attr in ["level", "relative", "absolute", "ignore"]:
                 if value := getattr(self, attr):
-                    kwargs += f", {attr}={value}"
-            return f"{self.__class__.__name__}('{self.text}'{kwargs})"
+                    kwargs += f", {attr}={value!r}"
+            return f"{self.__class__.__name__}({self.text!r}{kwargs})"
 
     class Text(_Base):
         pass

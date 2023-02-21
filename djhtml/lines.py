@@ -66,5 +66,5 @@ class Line:
         kwargs = ""
         for attr in ["level", "offset", "ignore"]:
             if value := getattr(self, attr):
-                kwargs += f", {attr}={value}"
-        return f"Line({repr(self.tokens)}{kwargs})"
+                kwargs += f", {attr}={value!r}"
+        return f"Line({self.tokens!r}{kwargs})"
