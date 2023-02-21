@@ -53,6 +53,19 @@
 </style>
 
 
+<!-- The example from the README -->
+<style>
+    @font-face {
+        font-family: Helvetica;
+        src: {% for format, filename in licensed_fonts %}
+                 url('{% static filename %}') format('{{ format }}'),
+             {% endfor %}
+             url('Arial.woff2') format('woff2'),
+             url('Arial.woff') format('woff');
+    }
+</style>
+
+
 <!-- @media -->
 <style>
     @media(max-width: 800px) {

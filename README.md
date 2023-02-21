@@ -14,74 +14,73 @@ whitespace at the beginning of lines. It will not insert newlines or
 other characters. The goal is to correctly indent already
 well-structured templates, not to fix broken ones.
 
-For example, consider the following incorrectly indented template:
 
-```jinja
-<!doctype html>
-<html>
-    <body>
-        {% block content %}
-        Hello, world!
-        {% endblock %}
-        <script>
-            $(function() {
-            console.log('Hi mom!');
-            });
-        </script>
-    </body>
-</html>
-```
-
-This is what it will look like after processing by DjHTML:
-
-```jinja
-<!doctype html>
-<html>
-    <body>
-        {% block content %}
-            Hello, world!
-        {% endblock %}
-        <script>
-            $(function() {
-                console.log('Hi mom!');
-            });
-        </script>
-    </body>
-</html>
-```
-
-
-## New! Multi-line HTML elements
+### New! Multi-line HTML elements
 
 As of version 3, DjHTML indents multi-line HTML elements and
 multi-line attribute values like this:
 
-```html
-<blockquote cite="John Lennon"
-            style="color: dimgray;
-                   font-style: italic;
-                   border-left: 5px solid gray;
+```jinja
+<blockquote cite="Guido Van Rossum"
+            style="font-style: italic;
+                   {% if dark_mode %}
+                       background: black;
+                   {% endif %}
                   ">
-    It's weird not to be weird.
+    Don't you hate code that's not properly indented?
 </blockquote>
 ```
 
-## New! Tabwidth guessing
 
-Without the `-t` / `--tabwidth` argument, DjHTML no longer defaults to
-a tabwidth of 4 but instead guesses the correct tabwidth.
+### New! Multi-line CSS indentation
+
+Multi-line CSS values are now continued at the same indentation level:
+
+```jinja
+<style>
+    @font-face {
+        font-family: Helvetica;
+        src: {% for format, filename in licensed_fonts %}
+                 url('{% static filename %}') format('{{ format }}'),
+             {% endfor %}
+             url('Arial.woff2') format('woff2'),
+             url('Arial.woff') format('woff');
+    }
+</style>
+```
 
 
-## New! Django middleware
+### New! Improved JavaScript indentation
+
+Many new JavaScript indention rules have been added, such as the
+indentation of method chaining:
+
+```jinja
+<script>
+    window.fetch('/test.html')
+        .then((html) => {
+            document.body.innerHTML = html;
+            {% block extra_statements %}
+            {% endblock %}
+        });
+</script>
+```
+
+
+### New! Django middleware
 
 To automatically indent all the HTML responses from your Django web
 application, add the following to your settings file:
 
-    TABWIDTH = 4
-    MIDDLEWARE += ['djhtml.middleware.DjHTMLMiddleware']
+```python
+MIDDLEWARE += ['djhtml.middleware.DjHTMLMiddleware']
+```
 
-(Caution: when used in production, it is advised to use some kind of
-[caching](https://docs.djangoproject.com/en/stable/topics/cache/).)
+
+### New! Tabwidth guessing
+
+Without the `-t` / `--tabwidth` argument, DjHTML no longer defaults to
+a tabwidth of 4 but instead guesses the correct tabwidth.
 
 
 ## Installation
@@ -127,13 +126,11 @@ You can exclude specific lines from being processed with the
 `{# fmt:off #}` and `{# fmt:on #}` operators:
 
 ```jinja
-<div class="
-    {# fmt:off #}
-      ,-._|\
-     /     .\
-     \_,--._/
-    {# fmt:on #}
-           "/>
+{# fmt:off #}
+   ,-._|\
+  /     .\
+  \_,--._/
+{# fmt:on #}
 ```
 
 Contents inside `<pre> ... </pre>`, `<!-- ... --->`, `/* ... */`, and

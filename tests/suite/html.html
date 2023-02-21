@@ -333,12 +333,13 @@
 
 
 <!-- The example from the README -->
-<blockquote cite="John Lennon"
-            style="color: dimgray;
-                   font-style: italic;
-                   border-left: 5px solid gray;
+<blockquote cite="Guido Van Rossum"
+            style="font-style: italic;
+                   {% if dark_mode %}
+                       background: black;
+                   {% endif %}
                   ">
-    It's weird not to be weird.
+    Don't you hate code that's not properly indented?
 </blockquote>
 
 
