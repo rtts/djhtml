@@ -1,12 +1,12 @@
-import os
 import unittest
+from pathlib import Path
 
 from djhtml.modes import DjHTML
 
 
 class TestSuite(unittest.TestCase):
     maxDiff = None
-    DIR = os.path.join(os.path.dirname(__file__), "suite")
+    DIR = Path(__file__).parent / "suite"
 
     def test_available_files(self):
         """
@@ -14,13 +14,17 @@ class TestSuite(unittest.TestCase):
         expected output to the actual output.
 
         """
-        for filename in os.listdir(self.DIR):
-            with self.subTest(filename):
-                self._test_file(filename)
+        for filename in self.DIR.iterdir():
+            if filename.suffix == ".html":
+                with self.subTest(filename):
+                    self._test_file(filename.stem)
 
-    def _test_file(self, filename):
-        with open(os.path.join(self.DIR, filename)) as f:
+    def _test_file(self, basename):
+        with open(self.DIR / (basename + ".html")) as f:
             expected_output = f.read()
+
+        with open(self.DIR / (basename + ".tokens")) as f:
+            expected_tokens = f.read()
 
         # Indent the expected output to 0 (no indentation)
         unindented = DjHTML(expected_output).indent(0)
@@ -29,3 +33,7 @@ class TestSuite(unittest.TestCase):
         # Re-indent the unindented output to 4
         actual_output = DjHTML(unindented).indent(4)
         self.assertEqual(expected_output, actual_output)
+
+        # Compare the tokenization
+        actual_tokens = DjHTML(actual_output).debug()
+        self.assertEqual(expected_tokens, actual_tokens)
