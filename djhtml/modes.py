@@ -216,14 +216,8 @@ class DjTXT(BaseMode):
         if tag := re.match(self.OPENING_TAG, raw_token):
             name = tag.group(1)
             if name in self.COMMENT_TAGS:
-                token, mode = Token.Open(
-                    raw_token,
-                    mode=DjTXT,
-                    ignore=True,
-                ), Comment(
-                    r"{%[-+]? *end" + name + r"(?: .*?|)%}",
-                    mode=DjTXT,
-                    return_mode=self,
+                token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
+                    "{% *end" + name + " *%}", mode=DjTXT, return_mode=self
                 )
             elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, mode=DjTXT, **self.offsets)
@@ -235,9 +229,9 @@ class DjTXT(BaseMode):
                 token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
         elif raw_token == "{#":
             token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
-                r"\{# fmt:on #\}", mode=DjTXT, return_mode=self
+                "{# fmt:on #}", mode=DjTXT, return_mode=self
             ) if src.startswith(" fmt:off #}") else Comment(
-                r"#\}", mode=DjTXT, return_mode=self
+                "#}", mode=DjTXT, return_mode=self
             )
 
         else:
@@ -379,7 +373,6 @@ class DjJS(DjTXT):
         r'"(?:\\.|[^\\"])*"',  # "string"
         r"'(?:\\.|[^\\'])*'",  # 'string'
         r"`(?:\\.|[^\\`])*`",  # `string`
-        r"`",
         r"[{[()\]}]",
         r"var ",
         r"let ",
@@ -425,10 +418,6 @@ class DjJS(DjTXT):
             if raw_token == ")":
                 persist_relative_offset = True
             token = Token.Close(raw_token, mode=DjJS)
-        elif raw_token == "`":
-            token, mode = Token.Open(raw_token, mode=DjJS, ignore=True), Comment(
-                "`", mode=DjJS, return_mode=self
-            )
         elif raw_token == "/*":
             token, mode = Token.Open(raw_token, mode=DjJS, ignore=True), Comment(
                 r"\*/", mode=DjJS, return_mode=self
