@@ -188,7 +188,6 @@ class DjTXT(BaseMode):
     RAW_TOKENS = [
         r"\n",
         r"{%[-+]?.*?[-+]?%}",
-        r"{#.*?#}",
         r"{#",
         r"{{.*?}}",
     ]
@@ -209,8 +208,6 @@ class DjTXT(BaseMode):
         "video": (" as ", None),
         "placeholder": (" or ", None),
     }
-    FMT_ON = r"{# fmt:on #}"
-    FMT_OFF = r"{# fmt:off #}"
     OPENING_TAG = r"{%[-+]? *(\w+).*?[-+]?%}"
 
     def create_token(self, raw_token, src, line):
@@ -236,14 +233,13 @@ class DjTXT(BaseMode):
                 token = Token.Close(raw_token, mode=DjTXT, **self.offsets)
             else:
                 token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
-        elif re.match(self.FMT_OFF, raw_token):
-            token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
-                self.FMT_ON, mode=DjTXT, return_mode=self
-            )
         elif raw_token == "{#":
             token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
+                r"\{# fmt:on #\}", mode=DjTXT, return_mode=self
+            ) if src.startswith(" fmt:off #}") else Comment(
                 r"#\}", mode=DjTXT, return_mode=self
             )
+
         else:
             token = Token.Text(raw_token, mode=self.__class__, **self.offsets)
 
