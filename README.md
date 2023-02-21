@@ -67,16 +67,6 @@ indentation of method chaining:
 ```
 
 
-### New! Django middleware
-
-To automatically indent all the HTML responses from your Django web
-application, add the following to your settings file:
-
-```python
-MIDDLEWARE += ['djhtml.middleware.DjHTMLMiddleware']
-```
-
-
 ### New! Tabwidth guessing
 
 Without the `-t` / `--tabwidth` argument, DjHTML no longer defaults to
