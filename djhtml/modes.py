@@ -187,7 +187,7 @@ class DjTXT(BaseMode):
 
     RAW_TOKENS = [
         r"\n",
-        r"{%[-\+]?.*?[-\+]?%}",
+        r"{%[-+]?.*?[-+]?%}",
         r"{#.*?#}",
         r"{#",
         r"{{.*?}}",
@@ -211,7 +211,7 @@ class DjTXT(BaseMode):
     }
     FMT_ON = r"{# fmt:on #}"
     FMT_OFF = r"{# fmt:off #}"
-    OPENING_TAG = r"{%[-\+]? *(\w+).*?[-\+]?%}"
+    OPENING_TAG = r"{%[-+]? *(\w+).*?[-+]?%}"
 
     def create_token(self, raw_token, src, line):
         mode = self
@@ -224,7 +224,7 @@ class DjTXT(BaseMode):
                     mode=DjTXT,
                     ignore=True,
                 ), Comment(
-                    r"{%[-\+]? *end" + name + r"(?: .*?|)%}",
+                    r"{%[-+]? *end" + name + r"(?: .*?|)%}",
                     mode=DjTXT,
                     return_mode=self,
                 )
@@ -250,7 +250,7 @@ class DjTXT(BaseMode):
         return token, mode
 
     def _has_closing_token(self, name, raw_token, src):
-        if not re.search(f"{{%[-\\+]? *end{name}(?: .*?|)%}}", src):
+        if not re.search(f"{{%[-+]? *end{name}(?: .*?|)%}}", src):
             return False
         if regex := self.AMBIGUOUS_BLOCK_TAGS.get(name):
             if regex[0]:
@@ -329,7 +329,7 @@ class DjCSS(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [
         r"</style>",
-        r"[\{\(\)\}]",
+        r"[{()}]",
         r"/\*",
         r'".+"',
         r"'.+'",
@@ -379,12 +379,12 @@ class DjJS(DjTXT):
         r"\\.",
         r"//.*",
         r"/\*",
-        r"[\$\w-]+:",
+        r"[$\w-]+:",
         r'"(?:\\.|[^\\"])*"',  # "string"
         r"'(?:\\.|[^\\'])*'",  # 'string'
         r"`(?:\\.|[^\\`])*`",  # `string`
         r"`",
-        r"[\{\[\(\)\]\}]",
+        r"[{[()\]}]",
         r"var ",
         r"let ",
         r"const ",
@@ -399,8 +399,8 @@ class DjJS(DjTXT):
         super().__init__(*args, **kwargs)
         self.previous_offsets = []
         self.haskell = False
-        self.haskell_re = re.compile(r"^ *, ([\$\w-]+ *=|[\$\w-]+;?)")
-        self.variable_re = re.compile(r"^ *([\$\w-]+ *=|[\$\w-]+;?)")
+        self.haskell_re = re.compile(r"^ *, ([$\w-]+ *=|[$\w-]+;?)")
+        self.variable_re = re.compile(r"^ *([$\w-]+ *=|[$\w-]+;?)")
         self.previous_line_ended_with_comma = False
 
     def create_token(self, raw_token, src, line):
