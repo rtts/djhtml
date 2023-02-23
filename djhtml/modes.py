@@ -511,7 +511,7 @@ class InsideHTMLTag(DjTXT):
 
     """
 
-    RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>", r"[^ ='\">/]+=", r'"', r"'"]
+    RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>", r"[^ ='\">/\n]+=", r'"', r"'"]
 
     def __init__(self, tagname, line, return_mode):
         self.tagname = tagname
