@@ -187,3 +187,10 @@
                                    Helvetica;
     }
 </style>
+
+
+<!-- Nasty characters embedded in strings -->
+<style>
+    foo: "\"bar";
+    .icon-x-alarm:before { content: '\e800'; } /* '' */
+</style>
