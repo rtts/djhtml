@@ -157,10 +157,11 @@ return 42;
         }
         case 'rejected': {
             console.log('Rejected');
-            break;
         }
+            break;
         default: {
             console.log('Default');
+            break;
         }
     }
 </script>
@@ -216,6 +217,15 @@ return 42;
 </script>
 
 
+<!-- Succinct switch statement -->
+<script>
+    switch (foo) {
+        case bar: break
+        default: return
+    }
+</script>
+
+
 <!-- Things that look like switch, but aren't -->
 <script>
     function switchBoo () {
@@ -228,4 +238,218 @@ return 42;
         'default:',
         'case ',
     ];
+</script>
+
+
+<!-- Another problematic switch statement -->
+<script>
+    switch (foo) {
+        case bar:
+            if (baz) {
+                switch (foo) {
+                    case bar:
+                        if (baz) {
+                            xizzy();
+                        }
+                }
+            }
+    }
+</script>
+
+
+<!-- More function chaining -->
+<script>
+    window.fetch('/test.html')
+        .then((html) => {
+            document.body.innerHTML = html;
+        });
+
+    foo
+        .bar
+        .baz
+        .then(() => {
+            foo
+                .bar
+                .baz
+                .then(() => {
+                    foo
+                        .bar
+                        .baz
+                });
+        });
+</script>
+
+
+<!-- Not enough closing tokens -->
+<head>
+    <script>
+        function foo() {
+    </script>
+</head>
+
+
+<!-- Too much closing tokens -->
+<head>
+    <script>
+        function foo() {
+        }
+        }
+        }
+    </script>
+</head>
+
+
+<!-- Single-line comments -->
+<script>
+    // The following does not contain a comment
+    wsHost = (/^wss?:\/\//i.test(me._host) ? '' : me._protocol) + me._host;
+
+    foo; // This is a comment
+    bar //This too
+    baz//Even this
+
+    foo // function() {
+    bar //     var a = 1;
+    baz // }
+</script>
+
+
+<!-- Multi-line variable assignment -->
+<script>
+    var a = 1,
+        b = 2,
+        c;
+    var foo = bar; let a = 1,
+                       b = 2,
+                       c
+
+    // Haskell-style indentation
+    const a = 1
+        , b = 2
+        , c
+
+    // Notice the first line is the same
+    const a = 1
+    b = 2
+    c = 3
+
+    // Yes, this makes sense
+    const func1 = function() {
+        return foo
+    },
+          func2 = function() { return 2 },
+          func3 = function() { return 3 }
+
+    const foo = bar,
+          baz = {
+        ...
+    }
+
+    // We are not supporting madness like this
+    const a = 1,
+    {% if %}
+        b = 2,
+    {% endif %}
+    c = 3;
+</script>
+
+
+<!-- Things that look like case statements, and the "spread" operator -->
+<script>
+    var case = "foo"
+    var dict = {
+        case: "bar",
+        "default:": "baz",
+        ...params,
+    }
+</script>
+
+
+<!-- Multi-line ternary operator -->
+<script>
+    foo
+        ? bar
+        : baz
+</script>
+
+
+<!-- Quoted strings with escaped quotes -->
+<script>
+    var foo = '\'{'
+    var bar = "\"{"
+    var baz = `\`{`
+</script>
+
+
+<!-- Single-line statements -->
+<script>
+    if (foo)
+        bar
+
+    if (foo) return
+    bar
+
+    if (
+        foo &&
+        bar
+    )
+        baz
+    else
+        return
+
+    if (foo)
+        if (bar)
+            if (baz)
+                return
+    else
+        console.log("Footgun detected!")
+
+    leitmotif ()
+    elsewhere ();
+    meanwhile (true)
+
+    while (true)
+        break
+
+    for (i=1, 1<10, i++)
+    {
+        break
+    }
+</script>
+
+
+<!-- Multi-line variables and dictionaries -->
+<script>
+    var foo =
+        bar
+
+    const func =
+        function() {
+            return
+        })
+
+    // Note that unquoted "default" is a reserved keyword
+    let dict = {
+        "default":
+            foo
+        bar:
+            baz
+    }
+</script>
+
+
+<!-- Expression literals -->
+<script>
+    re = /ab+c/
+    space_re = / foo /
+    single_re = /foo\/ + bar/
+    double_re = /foo/ + /bar/
+    look_like_comment = /\(//
+
+    // The following is known to be broken
+    const x = 42
+    const y = 7
+    const six = x / (function() { // comment
+    return y
+    })();
 </script>

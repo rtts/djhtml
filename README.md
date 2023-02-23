@@ -2,8 +2,7 @@
 
 ***A pure-Python Django/Jinja template indenter without dependencies.***
 
-DjHTML is a fully automatic template indenter that works with mixed
-HTML/CSS/Javascript templates that contain
+DjHTML indents mixed HTML/CSS/JavaScript templates that contain
 [Django](https://docs.djangoproject.com/en/stable/ref/templates/language/)
 or [Jinja](https://jinja.palletsprojects.com/templates/) template
 tags. It works similar to other code-formatting tools such as
@@ -15,54 +14,77 @@ whitespace at the beginning of lines. It will not insert newlines or
 other characters. The goal is to correctly indent already
 well-structured templates, not to fix broken ones.
 
-For example, consider the following incorrectly indented template:
+
+### New! Multi-line HTML elements
+
+As of version 3, DjHTML indents multi-line HTML elements and
+multi-line attribute values like this:
 
 ```jinja
-<!doctype html>
-<html>
-    <body>
-        {% block content %}
-        Hello, world!
-        {% endblock %}
-        <script>
-            $(function() {
-            console.log('Hi mom!');
-            });
-        </script>
-    </body>
-</html>
+<blockquote cite="Guido Van Rossum"
+            style="font-style: italic;
+                   {% if dark_mode %}
+                       background: black;
+                   {% endif %}
+                  ">
+    Don't you hate code that's not properly indented?
+</blockquote>
 ```
 
-This is what it will look like after processing by DjHTML:
+
+### New! Multi-line CSS indentation
+
+Multi-line CSS values are now continued at the same indentation level:
 
 ```jinja
-<!doctype html>
-<html>
-    <body>
-        {% block content %}
-            Hello, world!
-        {% endblock %}
-        <script>
-            $(function() {
-                console.log('Hi mom!');
-            });
-        </script>
-    </body>
-</html>
+<style>
+    @font-face {
+        font-family: Helvetica;
+        src: {% for format, filename in licensed_fonts %}
+                 url('{% static filename %}') format('{{ format }}'),
+             {% endfor %}
+             url('Arial.woff2') format('woff2'),
+             url('Arial.woff') format('woff');
+    }
+</style>
 ```
+
+
+### New! Improved JavaScript indentation
+
+Many new JavaScript indention rules have been added, such as the
+indentation of method chaining:
+
+```jinja
+<script>
+    window.fetch('/test.html')
+        .then((html) => {
+            document.body.innerHTML = html;
+            {% block extra_statements %}
+            {% endblock %}
+        });
+</script>
+```
+
+
+### New! Tabwidth guessing
+
+Without the `-t` / `--tabwidth` argument, DjHTML no longer defaults to
+a tabwidth of 4 but instead guesses the correct tabwidth.
 
 
 ## Installation
 
-DjHTML is compatible with all operating systems supported by Python.
-Install DjHTML with the following command:
+DjHTML requires Python 3.8 or higher and is compatible with all
+operating systems supported by Python. Install DjHTML with the
+following command:
 
     $ pip install djhtml
 
-Note that [Windows still uses legacy code pages for the system
-encoding](https://docs.python.org/3/using/windows.html#win-utf8-mode).
-It is highly advised to set the environment variable `PYTHONUTF8` to
-`1` to avoid issues with indenting UTF-8 files. You can do so with the
+Note that
+[Windows still uses legacy code pages](https://docs.python.org/3/using/windows.html#win-utf8-mode)
+instead of UTF-8. It is highly advised to set the environment variable
+`PYTHONUTF8` to `1` with the
 [setx](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/setx)
 command:
 
@@ -78,12 +100,14 @@ command:
     reindented template.html
     1 template has been reindented.
 
+You can also run `djhtml .` to indent all HTML files beneath the
+current directory.
+
 An exit status of 0 means that everything went well, regardless of
 whether any files were changed. When the option `-c` / `--check` is
 used, the exit status is 1 when one or more files would have changed,
-but no changes are actually made. The exit status of 123 means that
-there was an error while indenting one or more files. All available
-options are given by `djthml -h` / `djthml --help`.
+but no changes are actually made. All available options are given by
+`djthml -h` / `djthml --help`.
 
 
 ## `fmt:off` and `fmt:on`
@@ -92,13 +116,11 @@ You can exclude specific lines from being processed with the
 `{# fmt:off #}` and `{# fmt:on #}` operators:
 
 ```jinja
-<div class="
-    {# fmt:off #}
-      ,-._|\
-     /     .\
-     \_,--._/
-    {# fmt:on #}
-"/>
+{# fmt:off #}
+   ,-._|\
+  /     .\
+  \_,--._/
+{# fmt:on #}
 ```
 
 Contents inside `<pre> ... </pre>`, `<!-- ... --->`, `/* ... */`, and
@@ -124,7 +146,7 @@ The indenter operates in one of three different modes:
 
 ## pre-commit configuration
 
-The best way to use DjHTML is as a [pre-commit](https://pre-commit.com/)
+A great way to use DjHTML is as a [pre-commit](https://pre-commit.com/)
 hook, so all your HTML, CSS and JavaScript files will automatically be
 indented upon every commit.
 
@@ -203,25 +225,36 @@ happy, please do the following:
 
 Your feedback for improving DjHTML is very welcome!
 
+
 ## Development
 
-Use your preferred system for setting up a virtualenv, docker environment,
-or whatever else, then run the following:
+First of all, clone this repository:
 
-```sh
-python -m pip install -e '.[dev]'
-pre-commit install --install-hooks
-```
+    $ git clone https://github.com/rtts/djhtml
+    $ cd djhtml
 
-Tests can then be run quickly in that environment:
+Then, create a Python virtualenv and activate it:
 
-```sh
-python -m unittest discover -v
-```
+    $ python -m venv ~/.virtualenvs/djhtml
+    $ . ~/.virtualenvs/djhtml/bin/activate
 
-Or testing in all available supported environments and linting can be run
-with [`nox`](https://nox.thea.codes):
+Then, install the package in [development
+mode](https://setuptools.pypa.io/en/latest/userguide/development_mode.html)
+including the `dev` dependencies, and install the pre-commit hooks:
 
-```sh
-nox
-```
+    $ python -m pip install -e '.[dev]'
+    $ pre-commit install --install-hooks
+
+You can run the unittests with:
+
+    $ python -m unittest
+
+Or use [`nox`](https://nox.thea.codes) to test all supported Python
+interpreters:
+
+    $ nox
+
+Finally, to get a little insight into the tokenization step of the
+indenting algorithm, you can run DjHTML with the `-d` / `--debug`
+argument. You will see a Python representation of the tokens that are
+created.

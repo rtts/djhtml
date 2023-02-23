@@ -16,15 +16,15 @@
 
 <!-- Whitespace control -->
 <div>
-{%+ if something %}
-yay
-{% endif %}
+    {%+ if something %}
+        yay
+    {% endif %}
 </div>
 
 <div>
-{% if something +%}
-yay
-{% endif %}
+    {% if something +%}
+        yay
+    {% endif %}
 </div>
 
 {% for item in seq -%}
@@ -32,16 +32,23 @@ yay
 {%- endfor %}
 
 {%- macro render_currency(currency, amount) -%}
-{{ amount }}
+    {{ amount }}
 {%- endmacro -%}
 
 
 <!-- Set assignment -->
 <div>
-{% set "five" = 5 %}
-Five is {{ five }}
-{% set blockdata %}
-Contents
-{% endset %}
-Contents of block is block
+    {% set "five" = 5 %}
+    Five is {{ five }}
+    {% set blockdata %}
+        Contents
+    {% endset %}
+    Contents of block is block
 </div>
+
+
+<!-- Don't support multiline if statements (for now) -->
+{% if ( condition1 and
+condition2 ) %}
+text
+{% endif %}

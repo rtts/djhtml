@@ -1,49 +1,12 @@
-import os
 import unittest
+from pathlib import Path
 
 from djhtml.modes import DjHTML
 
 
 class TestSuite(unittest.TestCase):
     maxDiff = None
-    DIR = os.path.join(os.path.dirname(__file__), "suite")
-
-    def _test_file(self, basename):
-        with open(os.path.join(self.DIR, f"{basename}.in"), "r") as f:
-            actual_input = f.read()
-
-        try:
-            with open(os.path.join(self.DIR, f"{basename}.out"), "r") as f:
-                expected_output = f.read()
-        except FileNotFoundError:
-            expected_output = None
-
-        try:
-            with open(os.path.join(self.DIR, f"{basename}.err"), "r") as f:
-                expected_error = f.read().strip()
-        except FileNotFoundError:
-            expected_error = None
-
-        if expected_output is None and expected_error is None:
-            self.fail(f"{basename} has no expected error or output.")
-
-        if expected_output is not None and expected_error is not None:
-            self.fail(f"{basename} has both expected error and output.")
-
-        try:
-            actual_output = DjHTML(actual_input).indent(4)
-            actual_error = None
-        except Exception as err:
-            actual_error = str(err).strip()
-            actual_output = None
-
-        if actual_error is not None and expected_error is None:
-            self.fail(f"Unexpected error: {actual_error}")
-        if actual_error is None and expected_error is not None:
-            self.fail(f"Unexpected success, expected error: {expected_error}")
-
-        self.assertEqual(actual_output, expected_output)
-        self.assertEqual(actual_error, expected_error)
+    DIR = Path(__file__).parent / "suite"
 
     def test_available_files(self):
         """
@@ -51,8 +14,26 @@ class TestSuite(unittest.TestCase):
         expected output to the actual output.
 
         """
-        for filename in os.listdir(self.DIR):
-            if filename.endswith(".in"):
-                basename, _ = os.path.splitext(filename)
-                with self.subTest(basename):
-                    self._test_file(basename)
+        for filename in self.DIR.iterdir():
+            if filename.suffix == ".html":
+                with self.subTest(filename):
+                    self._test_file(filename.stem)
+
+    def _test_file(self, basename):
+        with open(self.DIR / (basename + ".html")) as f:
+            expected_output = f.read()
+
+        with open(self.DIR / (basename + ".tokens")) as f:
+            expected_tokens = f.read()
+
+        # Indent the expected output to 0 (no indentation)
+        unindented = DjHTML(expected_output).indent(0)
+        self.assertNotEqual(unindented, expected_output)
+
+        # Re-indent the unindented output to 4
+        actual_output = DjHTML(unindented).indent(4)
+        self.assertEqual(expected_output, actual_output)
+
+        # Compare the tokenization
+        actual_tokens = DjHTML(actual_output).debug()
+        self.assertEqual(expected_tokens, actual_tokens)

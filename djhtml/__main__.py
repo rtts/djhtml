@@ -7,6 +7,12 @@ Passing "-" as the filename will read from standard input and write to
 standard output. Example usage:
 
     $ djhtml - < input.html > output.html
+
+Passing a directory name will recurse into the directory and format
+all files with typical extensions. For more fine-grained control of
+which files get processed, use external tools like find, xargs or
+pre-commit.
+
 """
 
 import sys
@@ -51,12 +57,25 @@ def main():
             _error(e)
             continue
 
+        # Guess tabwidth
+        if not options.tabwidth:
+            prev = 0
+            probabilities = [0] * 9
+            for line in source.splitlines():
+                if line and not line.isspace():
+                    depth = _get_depth(line)
+                    if abs(depth - prev) in [2, 4, 8]:
+                        probabilities[abs(depth - prev)] += 1
+                    prev = depth
+            guess = probabilities.index(max(probabilities))
+
         # Indent input file
         try:
-            if options.debug:
-                print(Mode(source).debug())
-                sys.exit()
-            result = Mode(source).indent(options.tabwidth)
+            result = Mode(source).indent(options.tabwidth or guess or 4)
+        except modes.MaxLineLengthExceeded:
+            problematic_files += 1
+            _error(f"Maximum line length exceeded in {filename}")
+            continue
         except Exception:
             _error(
                 f"Fatal error while processing {filename}\n\n"
@@ -66,8 +85,7 @@ def main():
             )
             raise
 
-        changed = _verify_changed(source, result)
-        if changed:
+        if changed := _verify_changed(source, result):
             changed_files += 1
         else:
             unchanged_files += 1
@@ -75,8 +93,7 @@ def main():
         # Write output file
         if not options.check:
             if filename == "-":
-                if not options.quiet:
-                    print(result, end="")
+                print(result, end="")
             elif changed:
                 try:
                     with open(filename, "w") as output_file:
@@ -101,6 +118,9 @@ def main():
         _info(
             f"{problematic_files} template{s} could not be processed due to an error."
         )
+
+    if options.debug:
+        print(Mode(source).debug(), file=sys.stderr)
 
     # Exit with appropriate exit status
     if problematic_files:
@@ -141,9 +161,20 @@ def _verify_changed(source, result):
     return changed
 
 
+def _get_depth(line):
+    count = 0
+    for char in line:
+        if char == " ":
+            count += 1
+        elif char == "\t":
+            count += 4
+        else:
+            break
+    return count
+
+
 def _info(msg):
-    if not options.quiet:
-        print(msg, file=sys.stderr)
+    print(msg, file=sys.stderr)
 
 
 def _error(msg):

@@ -1,3 +1,13 @@
+<!-- The example from the README -->
+<div class="
+    {# fmt:off #}
+      ,-._|\
+     /     .\
+     \_,--._/
+    {# fmt:on #}
+           "/>
+
+
 <!-- Basic everyday Django template -->
 {% load static %}
 {% block content %}
@@ -110,3 +120,46 @@
         {% endwith %}
     {% endslot %}
 {% endcomponent_block %}
+
+
+<!-- Don't indent template variables -->
+{{ '<b>' if condition }}
+some text
+{{ '</b>' if condition }}
+more text
+
+
+<!-- Unless they span multiple lines -->
+{{ '<b>'
+    if condition }}
+    some text
+    {{ '</b>
+if condition }}
+more text
+
+
+<!-- The example from issue #78 -->
+{% block main %}
+    <section>
+        <div>
+            <div>
+                {% placeholder "placeholder1" %}
+            </div>
+            <div>
+                {% placeholder "placeholder2" or %}
+                    <img src="" alt="" />
+                {% endplaceholder %}
+            </div>
+        </div>
+    </section>
+    <section>
+        <div>
+            {% placeholder "placeholder3" %}
+        </div>
+    </section>
+    <section>
+        <div>
+            {% placeholder "placeholder4" %}
+        </div>
+    </section>
+{% endblock %}

@@ -1,13 +1,15 @@
 <!-- Common pattern in django templates -->
-{% if %}
-    <a>
-{% else %}
-    <a>
-{% endif %}
-.
-{% if %}
-    </a>
-{% endif %}
+<div>
+    {% if some_condition %}
+        <a href="{% url a %}">
+    {% elif some_other condition %}
+        <a href="{% url b %}">
+    {% endif %}
+    .
+    {% if some_condition or some_other_condition %}
+        </a>
+    {% endif %}
+</div>
 
 
 <!-- The literal example from issue #17 -->
@@ -33,25 +35,6 @@
 {% endfor %}
 
 
-<!-- The most complicated example I can think of -->
-<body>
-    {% if %}
-        <div>
-    {% else %}
-        <span>{% if %}<blink>
-            {% block %}
-                </blink>
-            {% endblock %}{% endif %}
-    {% endif %}
-    .
-    {% if %}
-        </span>
-    {% else %}
-        </div>
-    {% endif %}
-</body>
-
-
 <!-- Inside <script> tag -->
 <script>
     {% if jquery %}
@@ -64,11 +47,4 @@
 </script>
 
 
-<!-- Manually disable formatting -->
-<body>
-    {# fmt:off #}
-     ,-._|\
-    /     .\
-    \_,--._/
-    {# fmt:on #}
-</body>
+<!-- Final note: all other malstructured source files will result in undefined behavior, but not in errors -->

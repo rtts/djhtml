@@ -1,0 +1,189 @@
+<!-- Basic CSS -->
+<style>
+    a {
+        text-decoration: none;
+    }
+</style>
+
+
+<!-- Nested SCSS -->
+<style>
+    a {
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+</style>
+
+
+<!-- Multiline comment -->
+<style>
+    /*
+     * Hi mom!
+     *
+     */
+</style>
+
+
+<!-- CSS Function -->
+<style>
+    #gradient {
+        background: linear-gradient(
+                        to top left,
+                        rgba(204,0,0,1),
+                        rgba(204,0,0,0)
+                    );
+    }
+</style>
+
+
+<!-- @font-face typical usage -->
+<style>
+    @font-face {
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: normal;
+        src: url('Open_Sans.woff2') format('woff2'),
+             url('Open_Sans.woff') format('woff'),
+             url('Open_Sans.eot?#iefix') format('embedded-opentype'),
+             url('Open_Sans.svg#OpenSans') format('svg'),
+             url('Open_Sans.ttf') format('truetype');
+    }
+</style>
+
+
+<!-- The example from the README -->
+<style>
+    @font-face {
+        font-family: Helvetica;
+        src: {% for format, filename in licensed_fonts %}
+                 url('{% static filename %}') format('{{ format }}'),
+             {% endfor %}
+             url('Arial.woff2') format('woff2'),
+             url('Arial.woff') format('woff');
+    }
+</style>
+
+
+<!-- @media -->
+<style>
+    @media(max-width: 800px) {
+        body {
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+    }
+</style>
+
+
+<!-- Missing semicolons -->
+<style>
+    p { align: left }
+    h1 {
+        font-weight: bold;
+        font-size: huge
+    }
+    footnote {
+        dontread: true !important
+    }
+</style>
+
+
+<!-- Nested SCSS with missing semicolons and different indentation styles -->
+<style>
+    article {
+        p { color: #999; align: left }
+    }
+    article {
+        p { color: #999;
+            align: left }
+    }
+    article {
+        p {
+            color: #999;
+            align: left }
+    }
+    article {
+        p { color: #999;
+            align: left
+        }
+    }
+    article {
+        p {
+            color: #999;
+            align: left
+        }
+    }
+    article {
+        p
+        {
+            color: #999;
+            align: left;
+        }
+    }
+</style>
+
+
+<!-- Selector weirdness -->
+<style>
+    blockquote:before {
+        content: "text-align: right";
+    }
+    @media(text-align: right) {
+        a:hover, a:active {
+            text-decoration:none
+        }
+        p::first-line {
+            color: red;
+        }
+    }
+</style>
+
+
+<!-- Nested SCSS with multi-line statements -->
+<style>
+    a:hover, a:active {
+        foo: bar,
+             baz;
+
+        a:hover, a:active {
+            foo: bar
+                 baz
+        }
+    }
+</style>
+
+
+<!-- The difference between multi-line statements and nested selectors -->
+<style>
+    body {
+        font-family: Arial,
+                     Helvetica;
+        a:link,
+        a:hover,
+        a:active {
+            color: red;
+        }
+    }
+
+    /* Since DjCSS expects a space between the property and the value,
+       the following is currently broken */
+    body {
+        font-family:Arial,
+        Helvetica;
+    }
+</style>
+
+
+<!-- Multi-line statements with prior statements -->
+<style>
+    body {
+        color: green; font-family: Arial,
+                                   Helvetica;
+
+        /* Spaces within lines are always preserved */
+        color: red;   font-family: Arial,
+                                   Helvetica;
+    }
+</style>
