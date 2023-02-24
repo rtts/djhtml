@@ -286,10 +286,21 @@ class DjHTML(DjTXT):
         mode = self
 
         if raw_token == "<":
-            if tag := re.match(r"([\w\-\.:]+)", src):
-                token, mode = Token.Text(raw_token, mode=DjHTML), InsideHTMLTag(
-                    tag[1], line, self
+            if match := re.match(r"([\w\-\.:]+)(\s*)", src):
+                tagname = match[1]
+                following_spaces = match[2]
+                absolute = True
+                token = Token.Text(raw_token, mode=DjHTML)
+                offsets = dict(
+                    relative=-1 if line.indents else 0,
+                    absolute=len(line) + len(tagname) + 2,
                 )
+                if "\n" in following_spaces:
+                    # Use "relative" multi-line indendation instead
+                    absolute = False
+                    token.indents = True
+                    offsets = dict(relative=0, absolute=0)
+                mode = InsideHTMLTag(tagname, line, self, absolute, offsets)
             else:
                 token = Token.Text(raw_token, mode=DjHTML)
         elif raw_token == "<!--":
@@ -513,17 +524,14 @@ class InsideHTMLTag(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>", r"[^ ='\">/\n]+=", r'"', r"'"]
 
-    def __init__(self, tagname, line, return_mode):
+    def __init__(self, tagname, line, return_mode, absolute, offsets):
         self.tagname = tagname
         self.return_mode = return_mode
+        self.absolute = absolute
+        self.offsets = offsets
         self.token_re = compile_re(self.RAW_TOKENS)
         self.inside_attr = False
-        self.offsets = dict(
-            relative=-1 if line.indents else 0, absolute=len(line) + len(tagname) + 2
-        )
-
-        # Pff...
-        self.additional_offset = -len(tagname) - 1
+        self.additional_offset = -len(tagname) - 1 if absolute else 0
 
     def create_token(self, raw_token, src, line):
         mode = self
@@ -549,6 +557,8 @@ class InsideHTMLTag(DjTXT):
                 token = Token.Text(raw_token, mode=InsideHTMLTag, **self.offsets)
         elif not self.inside_attr and raw_token == "/>":
             token, mode = Token.Text(raw_token, mode=DjHTML), self.return_mode
+            if not self.absolute:
+                token.dedents = True
         elif not self.inside_attr and raw_token == ">":
             if self.tagname.lower() in DjHTML.IGNORE_TAGS:
                 token, mode = Token.Text(raw_token, mode=DjHTML), self.return_mode
@@ -565,6 +575,8 @@ class InsideHTMLTag(DjTXT):
                     Token.Open(raw_token, mode=DjHTML),
                     self.return_mode,
                 )
+            if not self.absolute:
+                token.dedents = True
         else:
             token, mode = super().create_token(raw_token, src, line)
 

@@ -132,18 +132,18 @@
 <!-- SVG with multi-line attribute values -->
 <svg width="325" height="325" xmlns="http://www.w3.org/2000/svg">
     <path
-          d="M 80 80
-             A 45 45, 0, 0, 0, 125 125
-             L 125 80 Z"
-          fill="green"
+        d="M 80 80
+           A 45 45, 0, 0, 0, 125 125
+           L 125 80 Z"
+        fill="green"
     />
     <path
-          d="
-             M 80 80
-             A 45 45, 0, 0, 0, 125 125
-             L 125 80 Z
-            "
-          fill="green"
+        d="
+           M 80 80
+           A 45 45, 0, 0, 0, 125 125
+           L 125 80 Z
+          "
+        fill="green"
     />
     <path d="M 80 80
              A 45 45, 0, 0, 0, 125 125
@@ -161,20 +161,20 @@
 
 <!-- Block tags inside HTML elements -->
 <div
-     {% block class %}
-         class="foo"
-     {% endblock %}
+    {% block class %}
+        class="foo"
+    {% endblock %}
 >
     text
 </div>
 
 <div
-     {% block classes %}
-         class="
-                foo
-                bar
-               "
-     {% endblock %}
+    {% block classes %}
+        class="
+               foo
+               bar
+              "
+    {% endblock %}
 >
     text
 </div>
@@ -227,8 +227,8 @@
     text
 </a>
 <a
-   id="2" href=""
-   class="button">
+    id="2" href=""
+    class="button">
     text
 </a>
 <a id="3" href=""
@@ -237,8 +237,8 @@
     text
 </a>
 <a
-   id="4" href=""
-   class="button"
+    id="4" href=""
+    class="button"
 >
     text
 </a>
@@ -306,11 +306,11 @@
 
 <!-- Weird but legal element names -->
 <my-component
-              hidden/>
+    hidden/>
 <my.component
-              hidden/>
+    hidden/>
 <my:component
-              hidden/>
+    hidden/>
 
 
 <!-- Multi-line attribute value with additional elements/attributes -->
@@ -352,3 +352,14 @@
             class="baz'
                   "
 />
+
+
+<!-- Absolute vs. relative mult-line elements -->
+<long-html-tag attribute1="value"
+               attribute2="value"
+               attribute3="value"/>
+
+<long-html-tag-followed-by-newline
+    attribute1="value"
+    attribute2="value"
+    attribute3="value"/>
