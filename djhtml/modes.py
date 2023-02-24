@@ -286,15 +286,16 @@ class DjHTML(DjTXT):
         mode = self
 
         if raw_token == "<":
-            if tag := re.match(r"([\w\-\.:]+)", src):
-                tagname = tag[1]
+            if match := re.match(r"([\w\-\.:]+)(\s*)", src):
+                tagname = match[1]
+                following_spaces = match[2]
                 absolute = True
                 token = Token.Text(raw_token, mode=DjHTML)
                 offsets = dict(
                     relative=-1 if line.indents else 0,
                     absolute=len(line) + len(tagname) + 2,
                 )
-                if tag := re.match(tagname + r"[ \t]*\n", src):
+                if "\n" in following_spaces:
                     # Use "relative" multi-line indendation instead
                     absolute = False
                     token.indents = True
