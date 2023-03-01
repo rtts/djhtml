@@ -103,7 +103,10 @@ def main():
                     problematic_files += 1
                     _error(e)
                     continue
-                _info(f"reindented {output_file.name}")
+                if not options.quiet:
+                    _info(f"reindented {output_file.name}")
+        elif not options.quiet and filename != "-":
+            _info(f"{filename} would be reindented.")
 
     # Print final summary
     s = "s" if changed_files != 1 else ""
