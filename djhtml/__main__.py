@@ -104,6 +104,8 @@ def main():
                     _error(e)
                     continue
                 _info(f"reindented {output_file.name}")
+        elif changed and filename != "-":
+            _info(f"would have reindented {filename}")
 
     # Print final summary
     s = "s" if changed_files != 1 else ""
