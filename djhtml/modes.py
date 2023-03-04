@@ -208,7 +208,7 @@ class DjTXT(BaseMode):
         "video": (" as ", None),
         "placeholder": (" or ", None),
     }
-    OPENING_TAG = r"{%[-+]? *(\w+).*?[-+]?%}"
+    OPENING_TAG = r"{%[-+]? *[#/]?(\w+).*?[-+]?%}"
 
     def create_token(self, raw_token, src, line):
         mode = self
@@ -219,12 +219,12 @@ class DjTXT(BaseMode):
                 token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
                     "{% *end" + name + " *%}", mode=DjTXT, return_mode=self
                 )
+            elif name.startswith("end") or re.match(r"{% */\w+", raw_token):
+                token = Token.Close(raw_token, mode=DjTXT, **self.offsets)
             elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, mode=DjTXT, **self.offsets)
             elif name in self.CLOSING_AND_OPENING_TAGS:
                 token = Token.CloseAndOpen(raw_token, mode=DjTXT, **self.offsets)
-            elif name.startswith("end"):
-                token = Token.Close(raw_token, mode=DjTXT, **self.offsets)
             else:
                 token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
         elif raw_token == "{#":
@@ -240,7 +240,7 @@ class DjTXT(BaseMode):
         return token, mode
 
     def _has_closing_token(self, name, raw_token, src):
-        if not re.search(f"{{%[-+]? *end{name}(?: .*?|)%}}", src):
+        if not re.search(f"{{%[-+]? *(end|/){name}(?: .*?|)%}}", src):
             return False
         if regex := self.AMBIGUOUS_BLOCK_TAGS.get(name):
             if regex[0]:

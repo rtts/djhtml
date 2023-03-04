@@ -163,3 +163,24 @@ more text
         </div>
     </section>
 {% endblock %}
+
+
+<!-- Slippers components (https://github.com/rtts/djhtml/issues/86) -->
+{% #quote %}
+    {% quote_photo src="/project-hail-mary.jpg" %}
+
+    {% #quote_text %}
+        “I penetrated the outer cell membrane with a nanosyringe."
+        "You poked it with a stick?"
+        "No!" I said. "Well. Yes. But it was a scientific poke
+        with a very scientific stick.”
+    {% /quote_text %}
+
+    {% #quote_attribution %}
+        Andy Weir, Project Hail Mary
+    {% /quote_attribution %}
+
+    {% #quote_text %}
+        This component is intentionally repeated.
+    {% /quote_text %}
+{% /quote %}
