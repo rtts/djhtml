@@ -43,12 +43,6 @@ parser.add_argument(
     help="check indentation without modifying files",
 )
 parser.add_argument(
-    "-q",
-    "--quiet",
-    action="store_true",
-    help="don't print informational messages per file",
-)
-parser.add_argument(
     "-t",
     "--tabwidth",
     metavar="N",
