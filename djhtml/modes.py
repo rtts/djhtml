@@ -383,7 +383,7 @@ class DjJS(DjTXT):
         r'"(?:\\.|[^\\"])*"',  # "string"
         r"'(?:\\.|[^\\'])*'",  # 'string'
         r"`(?:\\.|[^\\`])*`",  # `string`
-        r"/(?:\\.|[^\\/\n])*/",  # /string/
+        r"/(?:\\.|[^\\/ \n])*/",  # /string/ (but without spaces)
         r"[{[()\]}]",
         r"var ",
         r"let ",
