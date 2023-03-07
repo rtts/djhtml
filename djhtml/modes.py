@@ -330,6 +330,7 @@ class DjCSS(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [
         r"</style>",
+        r"//.*",
         r"[{()}]",
         r"/\*",
         r'"(?:\\.|[^\\"])*"',  # "string"
@@ -359,6 +360,8 @@ class DjCSS(DjTXT):
             token, mode = Token.Open(raw_token, mode=DjCSS, ignore=True), Comment(
                 r"\*/", mode=DjCSS, return_mode=self
             )
+        elif raw_token.startswith("//"):
+            token = Token.Text(raw_token, mode=DjCSS, ignore=True)
         elif raw_token == "</style>":
             token, mode = (
                 Token.Close(raw_token, mode=self.return_mode.__class__),
