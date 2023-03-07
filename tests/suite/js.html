@@ -444,12 +444,20 @@ return 42;
     space_re = / foo /
     single_re = /foo\/ + bar/
     double_re = /foo/ + /bar/
-    look_like_comment = /\(//
+    looks_like_comment = /\(//
 
-    // The following is known to be broken
     const x = 42
     const y = 7
     const six = x / (function() { // comment
-    return y
+        return y
     })();
+
+    foo = /([{/
+    bar = /\/{/
+    baz = //{//
+
+    // The following is known to be broken
+    /function() {/
+        return
+    }
 </script>

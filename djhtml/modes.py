@@ -25,8 +25,9 @@ class BaseMode:
         self.return_mode = return_mode or self
         self.token_re = compile_re(self.RAW_TOKENS)
 
-        # To keep track of the current offsets.
+        # To keep track of the current and previous offsets.
         self.offsets = dict(relative=0, absolute=0)
+        self.previous_offsets = []
 
     def indent(self, tabwidth):
         """
@@ -330,6 +331,7 @@ class DjCSS(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [
         r"</style>",
+        r"//.*",
         r"[{()}]",
         r"/\*",
         r'"(?:\\.|[^\\"])*"',  # "string"
@@ -342,13 +344,13 @@ class DjCSS(DjTXT):
         mode = self
 
         if raw_token in "{(":
-            token = Token.Open(raw_token, mode=DjCSS, **self.offsets)
-            if raw_token == "{":
-                self.offsets["absolute"] = 0
+            self.previous_offsets.append(self.offsets.copy())
+            self.offsets = dict(relative=0, absolute=0)
+            token = Token.Open(raw_token, mode=DjCSS)
         elif raw_token in "})":
-            if raw_token == "}":
-                self.offsets["absolute"] = 0
-            token = Token.Close(raw_token, mode=DjCSS, **self.offsets)
+            if self.previous_offsets:
+                self.offsets = self.previous_offsets.pop()
+            token = Token.Close(raw_token, mode=DjCSS)
         elif raw_token.endswith(": "):
             token = Token.Text(raw_token, mode=DjCSS, **self.offsets)
             self.offsets["absolute"] = len(line) + len(raw_token)
@@ -359,6 +361,8 @@ class DjCSS(DjTXT):
             token, mode = Token.Open(raw_token, mode=DjCSS, ignore=True), Comment(
                 r"\*/", mode=DjCSS, return_mode=self
             )
+        elif raw_token.startswith("//"):
+            token = Token.Text(raw_token, mode=DjCSS, ignore=True)
         elif raw_token == "</style>":
             token, mode = (
                 Token.Close(raw_token, mode=self.return_mode.__class__),
@@ -383,7 +387,7 @@ class DjJS(DjTXT):
         r'"(?:\\.|[^\\"])*"',  # "string"
         r"'(?:\\.|[^\\'])*'",  # 'string'
         r"`(?:\\.|[^\\`])*`",  # `string`
-        r"/(?:\\.|[^\\/\n])*/",  # /string/
+        r"/(?:\\.|[^\\/ \n])*/",  # /string/ (but without spaces)
         r"[{[()\]}]",
         r"var ",
         r"let ",
@@ -397,7 +401,6 @@ class DjJS(DjTXT):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.previous_offsets = []
         self.haskell = False
         self.haskell_re = re.compile(r"^ *, ([$\w-]+ *=|[$\w-]+;?)")
         self.variable_re = re.compile(r"^ *([$\w-]+ *=|[$\w-]+;?)")
