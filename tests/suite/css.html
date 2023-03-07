@@ -30,10 +30,10 @@
 <style>
     #gradient {
         background: linear-gradient(
-                        to top left,
-                        rgba(204,0,0,1),
-                        rgba(204,0,0,0)
-                    );
+            to top left,
+            rgba(204,0,0,1),
+            rgba(204,0,0,0)
+        );
     }
 </style>
 
@@ -202,4 +202,13 @@
         foo: bar; // comment: ignore
         font-weight: bold;
     }
+</style>
+
+
+<!-- SCSS mixins -->
+<style>
+    @include button-outline-variant(
+        $color: $white,
+                $hover-background;
+    )
 </style>
