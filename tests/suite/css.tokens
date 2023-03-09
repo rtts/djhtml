@@ -201,6 +201,7 @@ Line([Text('<', mode=DjHTML), Text('style', mode=InsideHTMLTag, absolute=7), Ope
 Line([Text('    div ', mode=DjCSS), Open('{', mode=DjCSS, level=1)], level=1)
 Line([Text('        ', mode=DjCSS), Text('foo: ', mode=DjCSS), Text('bar', mode=DjCSS, absolute=5), Text(';', mode=DjCSS), Text(' ', mode=DjCSS), Text('// comment: ignore', mode=DjCSS, ignore=True)], level=2)
 Line([Text('        ', mode=DjCSS), Text('font-weight: ', mode=DjCSS), Text('bold', mode=DjCSS, absolute=13), Text(';', mode=DjCSS)], level=2)
+Line([Text('        ', mode=DjCSS), Text('background: ', mode=DjCSS), Text('url', mode=DjCSS, absolute=12), Open('(', mode=DjCSS, level=2), Text('http', mode=DjCSS), Text('://', mode=DjCSS), Text('not.a.comment', mode=DjCSS), Close(')', mode=DjCSS), Text(';', mode=DjCSS)], level=2)
 Line([Text('    ', mode=DjCSS), Close('}', mode=DjCSS)], level=1)
 Line([Close('</style>', mode=DjHTML)])
 Line([])

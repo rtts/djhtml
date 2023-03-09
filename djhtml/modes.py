@@ -330,7 +330,7 @@ class DjCSS(DjTXT):
     """
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [
-        r"</style>",
+        r"://",
         r"//.*",
         r"[{()}]",
         r"/\*",
@@ -338,6 +338,7 @@ class DjCSS(DjTXT):
         r"'(?:\\.|[^\\'])*'",  # 'string'
         r"[\w-]+: ",
         r";",
+        r"</style>",
     ]
 
     def create_token(self, raw_token, src, line):
