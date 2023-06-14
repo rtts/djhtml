@@ -241,7 +241,7 @@ class DjTXT(BaseMode):
         return token, mode
 
     def _has_closing_token(self, name, raw_token, src):
-        if not re.search(f"{{%[-+]? *(end|/){name}(?: .*?|)%}}", src):
+        if not re.search(f"{{%[-+]? *(end_?|/){name}(?: .*?|)%}}", src):
             return False
         if regex := self.AMBIGUOUS_BLOCK_TAGS.get(name):
             if regex[0]:
