@@ -241,8 +241,12 @@ class DjTXT(BaseMode):
         return token, mode
 
     def _has_closing_token(self, name, raw_token, src):
-        if not re.search(f"{{%[-+]? *(end_?|/){name}(?: .*?|)%}}", src):
+        m = re.search(f"{{%[-+]? *(end_?|/){name}(?: .*?|)%}}", src)
+        if not m:
             return False
+        else:  # Closing tag was found, but maybe for another Slippers tag.
+            if re.search(rf"{{%\s*#{name}\W", src[: m.start()]):
+                return False
         if regex := self.AMBIGUOUS_BLOCK_TAGS.get(name):
             if regex[0]:
                 return re.search(regex[0], raw_token)

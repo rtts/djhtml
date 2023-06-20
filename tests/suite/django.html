@@ -169,6 +169,10 @@ more text
 {% #quote %}
     {% quote_photo src="/project-hail-mary.jpg" %}
 
+    {% #quote_photo %}
+        This shouldn't make the previous tag being registered as an opening tag.
+    {% /quote_photo %}
+
     {% #quote_text %}
         “I penetrated the outer cell membrane with a nanosyringe."
         "You poked it with a stick?"
