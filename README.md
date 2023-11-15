@@ -120,6 +120,7 @@ You can exclude specific lines from being processed with the
    ,-._|\
   /     .\
   \_,--._/
+        v
 {# fmt:on #}
 ```
 
