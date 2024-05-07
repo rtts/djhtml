@@ -195,3 +195,21 @@ more text
 {% customtag %}
     <div></div>
 {% endcustomtag %}
+
+
+<!-- Force specific modes -->
+{# fmt:css #}
+a {
+    text-decoration: none;
+    &:hover {
+        text-decoration: underline;
+    }
+}
+{# fmt:js #}
+function f() {
+    return 42;
+}
+{# fmt:html #}
+<ul>
+    <li/>
+</ul>

@@ -189,6 +189,10 @@ class DjTXT(BaseMode):
     RAW_TOKENS = [
         r"\n",
         r"{%[-+]?.*?[-+]?%}",
+        r"{# fmt:off #}",
+        r"{# fmt:html #}",
+        r"{# fmt:css #}",
+        r"{# fmt:js #}",
         r"{#",
         r"{{.*?}}",
     ]
@@ -228,13 +232,18 @@ class DjTXT(BaseMode):
                 token = Token.CloseAndOpen(raw_token, mode=DjTXT, **self.offsets)
             else:
                 token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
-        elif raw_token == "{#":
-            token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
+        elif raw_token == "{# fmt:off #}":
+            token, mode = Token.Text(raw_token, mode=DjTXT, ignore=True), Comment(
                 "{# fmt:on #}", mode=DjTXT, return_mode=self
-            ) if src.startswith(" fmt:off #}") else Comment(
-                "#}", mode=DjTXT, return_mode=self
             )
-
+        elif raw_token == "{# fmt:html #}":
+            token, mode = Token.Text(raw_token, mode=DjHTML, ignore=True), DjHTML(return_mode=self)
+        elif raw_token == "{# fmt:css #}":
+            token, mode = Token.Text(raw_token, mode=DjCSS, ignore=True), DjCSS(return_mode=self)
+        elif raw_token == "{# fmt:js #}":
+            token, mode = Token.Text(raw_token, mode=DjJS, ignore=True), DjJS(return_mode=self)
+        elif raw_token == "{#":
+            token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment("#}", mode=DjTXT, return_mode=self)
         else:
             token = Token.Text(raw_token, mode=self.__class__, **self.offsets)
 
