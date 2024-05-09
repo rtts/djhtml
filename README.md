@@ -2,6 +2,19 @@
 
 ***A pure-Python Django/Jinja template indenter without dependencies.***
 
+```jinja
+{% block content %}
+    <blockquote
+        cite="Guido Van Rossum"
+        class="Pythonic"
+    >
+        {% blocktranslate trimmed %}
+            Don't you hate code that's not properly indented?
+        {% endblocktranslate %}
+    </blockquote>
+{% endblock %}
+```
+
 DjHTML indents mixed HTML/CSS/JavaScript templates that contain
 [Django](https://docs.djangoproject.com/en/stable/ref/templates/language/)
 or [Jinja](https://jinja.palletsprojects.com/templates/) template
@@ -13,64 +26,6 @@ DjHTML is an _indenter_ and not a _formatter_: it will only add/remove
 whitespace at the beginning of lines. It will not insert newlines or
 other characters. The goal is to correctly indent already
 well-structured templates, not to fix broken ones.
-
-
-### New! Multi-line HTML elements
-
-As of version 3, DjHTML indents multi-line HTML elements and
-multi-line attribute values like this:
-
-```jinja
-<blockquote cite="Guido Van Rossum"
-            style="font-style: italic;
-                   {% if dark_mode %}
-                       background: black;
-                   {% endif %}
-                  ">
-    Don't you hate code that's not properly indented?
-</blockquote>
-```
-
-
-### New! Multi-line CSS indentation
-
-Multi-line CSS values are now continued at the same indentation level:
-
-```jinja
-<style>
-    @font-face {
-        font-family: Helvetica;
-        src: {% for format, filename in licensed_fonts %}
-                 url('{% static filename %}') format('{{ format }}'),
-             {% endfor %}
-             url('Arial.woff2') format('woff2'),
-             url('Arial.woff') format('woff');
-    }
-</style>
-```
-
-
-### New! Improved JavaScript indentation
-
-Many new JavaScript indention rules have been added, such as the
-indentation of method chaining:
-
-```jinja
-<script>
-    window.fetch('/test.html')
-        .then((html) => {
-            document.body.innerHTML = html;
-            {% block extra_statements %}
-            {% endblock %}
-        });
-</script>
-```
-
-
-### New! Tabwidth guessing
-
-Without the `-t` / `--tabwidth` argument, DjHTML no longer defaults to
-a tabwidth of 4 but instead guesses the correct tabwidth.
 
 
 ## Installation
