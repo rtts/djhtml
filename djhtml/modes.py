@@ -11,6 +11,7 @@ class BaseMode:
     """
 
     MAX_LINE_LENGTH = 10_000
+    END_TAG = "%}"
 
     def __init__(self, source=None, return_mode=None):
         """
@@ -55,6 +56,7 @@ class BaseMode:
         line = Line()
         mode = self
         src = self.source
+        closing_marker = True
 
         while True:
             if src.find("\n") > mode.MAX_LINE_LENGTH:
@@ -77,6 +79,15 @@ class BaseMode:
                 # Create a token from the head.
                 token, mode = mode.create_token(head, raw_token + tail, line)
                 line.append(token)
+
+                if isinstance(token, Token.Open):
+                    if not token.text.endswith("%}"):
+                        closing_marker = False
+                elif isinstance(token, Token.Text) and not closing_marker:
+                    if token.text.endswith("%}"):
+                        closing_marker = True
+                    else:
+                        token.level += 1
 
             if raw_token == "\n":
                 self.lines.append(line)
@@ -155,7 +166,10 @@ class BaseMode:
                         if token.is_double and stack[-1].is_double:
                             opening_token = stack.pop()
                         if stack and first_token:
-                            line.level = stack[-1].level + 1
+                            if line.text == self.END_TAG:
+                                line.level = stack[-1].level
+                            else:
+                                line.level = stack[-1].level + 1
 
                 # Adjust line level according to the token's offsets.
                 if first_token:
@@ -209,7 +223,7 @@ class DjTXT(BaseMode):
         "video": (" as ", None),
         "placeholder": (" or ", None),
     }
-    OPENING_TAG = r"{%[-+]? *[#/]?(\w+).*?[-+]?%}"
+    OPENING_TAG = r"{%[-+]? *[#/]?(\w+).*?(?:[-+]?%})?"
 
     def create_token(self, raw_token, src, line):
         mode = self
