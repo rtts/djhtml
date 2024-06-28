@@ -20,10 +20,10 @@ class TestSuite(unittest.TestCase):
                     self._test_file(filename.stem)
 
     def _test_file(self, basename):
-        with open(self.DIR / (basename + ".html")) as f:
+        with open(self.DIR / (basename + ".html"), encoding="utf8") as f:
             expected_output = f.read()
 
-        with open(self.DIR / (basename + ".tokens")) as f:
+        with open(self.DIR / (basename + ".tokens"), encoding="utf8") as f:
             expected_tokens = f.read()
 
         # Indent the expected output to 0 (no indentation)

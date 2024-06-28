@@ -12,6 +12,6 @@ DIR = Path(__file__).parent / "suite"
 
 for filename in DIR.iterdir():
     if filename.suffix == ".html":
-        with open(DIR / filename) as html:
-            with open(DIR / (filename.stem + ".tokens"), "w") as f:
+        with open(DIR / filename, encoding="utf8") as html:
+            with open(DIR / (filename.stem + ".tokens"), "w", encoding="utf8") as f:
                 f.write(DjHTML(html.read()).debug())
