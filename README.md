@@ -30,7 +30,7 @@ well-structured templates, not to fix broken ones.
 
 ## Installation
 
-DjHTML requires Python 3.8 or higher and is compatible with all
+DjHTML requires Python 3.9 or higher and is compatible with all
 operating systems supported by Python. Install DjHTML with the
 following command:
 
