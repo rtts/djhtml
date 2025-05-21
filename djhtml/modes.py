@@ -12,7 +12,7 @@ class BaseMode:
 
     MAX_LINE_LENGTH = 10_000
 
-    def __init__(self, source=None, return_mode=None):
+    def __init__(self, source=None, return_mode=None, extra_blocks=None):
         """
         Instantiate with source text before calling indent(), or
         with the return_mode when invoked from within another mode.
@@ -24,6 +24,7 @@ class BaseMode:
         self.source = source
         self.return_mode = return_mode or self
         self.token_re = compile_re(self.RAW_TOKENS)
+        self.extra_blocks = dict(extra_blocks or [])
 
         # To keep track of the current and previous offsets.
         self.offsets = dict(relative=0, absolute=0)
@@ -241,6 +242,9 @@ class DjTXT(BaseMode):
         return token, mode
 
     def _has_closing_token(self, name, raw_token, src):
+        endtag = self.extra_blocks.get(name)
+        if endtag:
+            return re.search(f"{{%[-+]? *{endtag}(?: .*?|)%}}", src)
         if not re.search(f"{{%[-+]? *(end_?|/){name}(?: .*?|)%}}", src):
             return False
         if regex := self.AMBIGUOUS_BLOCK_TAGS.get(name):
@@ -406,6 +410,7 @@ class DjJS(DjTXT):
         self.haskell_re = re.compile(r"^ *, ([$\w-]+ *=|[$\w-]+;?)")
         self.variable_re = re.compile(r"^ *([$\w-]+ *=|[$\w-]+;?)")
         self.previous_line_ended_with_comma = False
+        self.extra_blocks = {}
 
     def create_token(self, raw_token, src, line):
         mode = self
@@ -513,6 +518,7 @@ class Comment(DjTXT):
         self.mode = mode
         self.return_mode = return_mode
         self.token_re = compile_re([r"\n", endtag])
+        self.extra_blocks = {}
 
     def create_token(self, raw_token, src, line):
         if re.match(self.endtag, raw_token):
@@ -536,6 +542,7 @@ class InsideHTMLTag(DjTXT):
         self.token_re = compile_re(self.RAW_TOKENS)
         self.inside_attr = False
         self.additional_offset = -len(tagname) - 1 if absolute else 0
+        self.extra_blocks = {}
 
     def create_token(self, raw_token, src, line):
         mode = self

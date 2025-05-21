@@ -27,13 +27,19 @@ class TestSuite(unittest.TestCase):
             expected_tokens = f.read()
 
         # Indent the expected output to 0 (no indentation)
-        unindented = DjHTML(expected_output).indent(0)
+        unindented = DjHTML(
+            expected_output, extra_blocks=[("weird_tag", "endweird")]
+        ).indent(0)
         self.assertNotEqual(unindented, expected_output)
 
         # Re-indent the unindented output to 4
-        actual_output = DjHTML(unindented).indent(4)
+        actual_output = DjHTML(
+            unindented, extra_blocks=[("weird_tag", "endweird")]
+        ).indent(4)
         self.assertEqual(expected_output, actual_output)
 
         # Compare the tokenization
-        actual_tokens = DjHTML(actual_output).debug()
+        actual_tokens = DjHTML(
+            actual_output, extra_blocks=[("weird_tag", "endweird")]
+        ).debug()
         self.assertEqual(expected_tokens, actual_tokens)
