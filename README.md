@@ -65,6 +65,18 @@ but no changes are actually made. All available options are given by
 `djthml -h` / `djthml --help`.
 
 
+### Command-line arguments
+
+DjHTML supports the following command-line arguments:
+
+- `-h` / `--help`: Show help text.
+- `-v` / `--version`: Show version number.
+- `-c` / `--check`: Dry-run, checks without modifying files.
+- `-t` / `--tabwidth N`: Tabwidth. The default is to guess.
+- `-b` / `--extra-block BEGIN,END`: Define an extra non-standard block
+  tag. Can be used multiple times.
+
+
 ## `fmt:off` and `fmt:on`
 
 You can exclude specific lines from being processed with the
