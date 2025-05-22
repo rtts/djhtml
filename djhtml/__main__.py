@@ -71,7 +71,9 @@ def main():
 
         # Indent input file
         try:
-            result = Mode(source).indent(options.tabwidth or guess or 4)
+            result = Mode(source, extra_blocks=options.extra_block).indent(
+                options.tabwidth or guess or 4
+            )
         except modes.MaxLineLengthExceeded:
             problematic_files += 1
             _error(f"Maximum line length exceeded in {filename}")

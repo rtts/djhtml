@@ -58,6 +58,13 @@ parser.add_argument(
 )
 parser.add_argument("-d", "--debug", action="store_true", help=argparse.SUPPRESS)
 parser.add_argument("-i", "--in-place", action="store_true", help=argparse.SUPPRESS)
+parser.add_argument(
+    "-b",
+    "--extra-block",
+    action="append",
+    help="startblock,endblock pair",
+    type=lambda x: tuple(x.split(",")),
+)
 
 # Parse arguments and assign attributes to self
 self = sys.modules[__name__]
