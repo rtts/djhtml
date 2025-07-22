@@ -1,18 +1,32 @@
 import re
+from abc import ABC, abstractmethod
 
 from .lines import Line
 from .tokens import Token
 
 
-class BaseMode:
+class BaseMode(ABC):
     """
     Base class for the different modes.
 
     """
 
+    RAW_TOKENS: list[str]
+    COMMENT_TAGS: list[str]
     MAX_LINE_LENGTH = 10_000
 
-    def __init__(self, source=None, return_mode=None, extra_blocks=None):
+    @abstractmethod
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token._Base, "BaseMode"]:
+        ...
+
+    def __init__(
+        self,
+        source: str = "",
+        return_mode: "BaseMode" | None = None,
+        extra_blocks: list[tuple[str, str]] | None = None,
+    ) -> None:
         """
         Instantiate with source text before calling indent(), or
         with the return_mode when invoked from within another mode.
@@ -28,9 +42,9 @@ class BaseMode:
 
         # To keep track of the current and previous offsets.
         self.offsets = dict(relative=0, absolute=0)
-        self.previous_offsets = []
+        self.previous_offsets: list[dict[str, int]] = []
 
-    def indent(self, tabwidth):
+    def indent(self, tabwidth: int) -> str:
         """
         Return the indented text as a single string.
 
@@ -39,7 +53,7 @@ class BaseMode:
         self.parse()
         return "\n".join([line.indent(tabwidth) for line in self.lines])
 
-    def tokenize(self):
+    def tokenize(self) -> None:
         """
         Split the source text into tokens and place them on lines.
 
@@ -91,7 +105,7 @@ class BaseMode:
             # Set the new source to the old tail for the next iteration.
             src = tail
 
-    def parse(self):
+    def parse(self) -> None:
         """
         You found the top-secret indenting algorithm!
 
@@ -101,9 +115,9 @@ class BaseMode:
         thereby accomodates different languages used interchangeably.
 
         """
-        stack = []
+        stack: list[Token._Base] = []
 
-        def mode_in_stack(mode):
+        def mode_in_stack(mode: type[BaseMode]) -> bool:
             """
             Helper function to see if a token from a specific mode
             is in the stack.
@@ -172,7 +186,7 @@ class BaseMode:
                 if token.text.strip():
                     first_token = False
 
-    def debug(self):
+    def debug(self) -> str:
         self.tokenize()
         self.parse()
         return "\n".join([repr(line) for line in self.lines])
@@ -212,10 +226,13 @@ class DjTXT(BaseMode):
     }
     OPENING_TAG = r"{%[-+]? *[#/]?(\w+).*?[-+]?%}"
 
-    def create_token(self, raw_token, src, line):
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token._Base, BaseMode]:
         mode = self
 
         if tag := re.match(self.OPENING_TAG, raw_token):
+            token: Token._Base
             name = tag.group(1)
             if name in self.COMMENT_TAGS:
                 token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
@@ -513,14 +530,16 @@ class Comment(DjTXT):
 
     """
 
-    def __init__(self, endtag, *, mode, return_mode):
+    def __init__(
+        self, endtag: str, *, mode: type[BaseMode], return_mode: BaseMode
+    ) -> None:
         self.endtag = endtag
         self.mode = mode
         self.return_mode = return_mode
         self.token_re = compile_re([r"\n", endtag])
         self.extra_blocks = {}
 
-    def create_token(self, raw_token, src, line):
+    def create_token(self, raw_token: str, src: str, line: Line) -> None:
         if re.match(self.endtag, raw_token):
             return Token.Close(raw_token, mode=self.mode, ignore=True), self.return_mode
         return Token.Text(raw_token, mode=Comment, ignore=True), self
@@ -598,5 +617,5 @@ class MaxLineLengthExceeded(Exception):
     pass
 
 
-def compile_re(raw_tokens):
+def compile_re(raw_tokens: list[str]) -> re.Pattern[str]:
     return re.compile("(" + "|".join(raw_tokens) + ")")

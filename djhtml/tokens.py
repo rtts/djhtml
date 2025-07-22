@@ -1,3 +1,6 @@
+from .modes import BaseMode
+
+
 class Token:
     """
     Container class for token types.
@@ -11,8 +14,15 @@ class Token:
         is_double = False
 
         def __init__(
-            self, text, *, mode, level=0, relative=0, absolute=0, ignore=False
-        ):
+            self,
+            text: str,
+            *,
+            mode: type[BaseMode],
+            level: int = 0,
+            relative: int = 0,
+            absolute: int = 0,
+            ignore: bool = False,
+        ) -> None:
             """
             Tokens must have a text and a mode class. The level
             represents the line level of opening tokens and is set
