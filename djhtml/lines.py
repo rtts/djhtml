@@ -1,4 +1,7 @@
-from tokens import Token
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .tokens import Token
 
 
 class Line:
@@ -9,7 +12,7 @@ class Line:
 
     def __init__(
         self,
-        tokens: list[Token] | None = None,
+        tokens: list["Token._Base"] | None = None,
         level: int = 0,
         offset: int = 0,
         ignore: bool = False,
@@ -24,7 +27,7 @@ class Line:
         self.offset = offset
         self.ignore = ignore
 
-    def append(self, token: Token) -> None:
+    def append(self, token: "Token._Base") -> None:
         """
         Append token to line.
 

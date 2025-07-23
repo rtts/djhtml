@@ -1,4 +1,7 @@
-from .modes import BaseMode
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .modes import BaseMode
 
 
 class Token:
@@ -17,7 +20,7 @@ class Token:
             self,
             text: str,
             *,
-            mode: type[BaseMode],
+            mode: type["BaseMode"],
             level: int = 0,
             relative: int = 0,
             absolute: int = 0,
@@ -38,7 +41,7 @@ class Token:
             self.absolute = absolute
             self.ignore = ignore
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             kwargs = f", mode={self.mode.__name__}"
             for attr in ["level", "relative", "absolute", "ignore"]:
                 if value := getattr(self, attr):
