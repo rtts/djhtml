@@ -1,9 +1,14 @@
 import re
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, TypedDict
 
 from .lines import Line
 from .tokens import Token
+
+
+class OffsetDict(TypedDict):
+    relative: int
+    absolute: int
 
 
 class BaseMode(ABC):
@@ -42,8 +47,8 @@ class BaseMode(ABC):
         self.extra_blocks = dict(extra_blocks or [])
 
         # To keep track of the current and previous offsets.
-        self.offsets = dict(relative=0, absolute=0)
-        self.previous_offsets: list[dict[str, int]] = []
+        self.offsets: OffsetDict = dict(relative=0, absolute=0)
+        self.previous_offsets: list[OffsetDict] = []
 
     def indent(self, tabwidth: int) -> str:
         """
@@ -316,7 +321,7 @@ class DjHTML(DjTXT):
                 following_spaces = match[2]
                 absolute = True
                 token: Token._Base = Token.Text(raw_token, mode=DjHTML)
-                offsets = dict(
+                offsets: OffsetDict = dict(
                     relative=-1 if line.indents else 0,
                     absolute=len(line) + len(tagname) + 2,
                 )
@@ -372,7 +377,7 @@ class DjCSS(DjTXT):
 
         if raw_token in "{(":
             self.previous_offsets.append(self.offsets.copy())
-            self.offsets = dict(relative=0, absolute=0)
+            self.offsets: OffsetDict = dict(relative=0, absolute=0)
             token: Token._Base = Token.Open(raw_token, mode=DjCSS)
         elif raw_token in "})":
             if self.previous_offsets:
@@ -568,7 +573,7 @@ class InsideHTMLTag(DjTXT):
         line: Line,
         return_mode: BaseMode,
         absolute: int,
-        offsets: dict[str, int],
+        offsets: OffsetDict,
     ) -> None:
         self.tagname = tagname
         self.return_mode = return_mode
