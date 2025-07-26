@@ -15,13 +15,16 @@ pre-commit.
 
 """
 
+from __future__ import annotations
+
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 from . import modes, options
 
 
-def main():
+def main() -> None:
     changed_files = 0
     unchanged_files = 0
     problematic_files = 0
@@ -54,7 +57,7 @@ def main():
                     source = input_file.read()
         except Exception as e:
             problematic_files += 1
-            _error(e)
+            _error(str(e))
             continue
 
         # Guess tabwidth
@@ -103,7 +106,7 @@ def main():
                 except Exception as e:
                     changed_files -= 1
                     problematic_files += 1
-                    _error(e)
+                    _error(str(e))
                     continue
                 _info(f"reindented {output_file.name}")
         elif changed and filename != "-":
@@ -134,7 +137,7 @@ def main():
     sys.exit(0)
 
 
-def _generate_filenames(paths, suffixes):
+def _generate_filenames(paths: list[str], suffixes: list[str]) -> Iterator[str]:
     for filename in paths:
         if filename == "-":
             yield filename
@@ -143,18 +146,20 @@ def _generate_filenames(paths, suffixes):
             if path.is_dir():
                 yield from _generate_filenames_from_directory(path, suffixes)
             else:
-                yield path
+                yield str(path)
 
 
-def _generate_filenames_from_directory(directory, suffixes):
+def _generate_filenames_from_directory(
+    directory: Path, suffixes: list[str]
+) -> Iterator[str]:
     for path in directory.iterdir():
         if path.is_file() and path.suffix in suffixes:
-            yield path
+            yield str(path)
         elif path.is_dir():
             yield from _generate_filenames_from_directory(path, suffixes)
 
 
-def _verify_changed(source, result):
+def _verify_changed(source: str, result: str) -> bool:
     output_lines = result.split("\n")
     changed = False
     for line_nr, line in enumerate(source.split("\n")):
@@ -165,7 +170,7 @@ def _verify_changed(source, result):
     return changed
 
 
-def _get_depth(line):
+def _get_depth(line: str) -> int:
     count = 0
     for char in line:
         if char == " ":
@@ -177,11 +182,11 @@ def _get_depth(line):
     return count
 
 
-def _info(msg):
+def _info(msg: str) -> None:
     print(msg, file=sys.stderr)
 
 
-def _error(msg):
+def _error(msg: str) -> None:
     _info(f"Error: {msg}")
 
 
