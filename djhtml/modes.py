@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from abc import ABC, abstractmethod
-from typing import Any, ClassVar, Sequence, TypedDict
+from typing import ClassVar, Sequence, TypedDict
 
 from .lines import Line
 from .tokens import Token
@@ -435,8 +435,13 @@ class DjJS(DjTXT):
         r"</script>",
     ]
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        source: str = "",
+        return_mode: "BaseMode | None" = None,
+        extra_blocks: list[tuple[str, str]] | None = None,
+    ) -> None:
+        super().__init__(source, return_mode, extra_blocks)
         self.haskell = False
         self.haskell_re = re.compile(r"^ *, ([$\w-]+ *=|[$\w-]+;?)")
         self.variable_re = re.compile(r"^ *([$\w-]+ *=|[$\w-]+;?)")
