@@ -13,4 +13,8 @@ for filename in DIR.iterdir():
     if filename.suffix == ".html":
         with open(DIR / filename) as html:
             with open(DIR / (filename.stem + ".tokens"), "w") as f:
-                f.write(DjHTML(html.read(), extra_blocks=[("weird_tag", "endweird")]).debug())
+                f.write(
+                    DjHTML(
+                        html.read(), extra_blocks=[("weird_tag", "endweird")]
+                    ).debug()
+                )
