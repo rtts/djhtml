@@ -14,7 +14,5 @@ for filename in DIR.iterdir():
         with open(DIR / filename) as html:
             with open(DIR / (filename.stem + ".tokens"), "w") as f:
                 f.write(
-                    DjHTML(
-                        html.read(), extra_blocks=[("weird_tag", "endweird")]
-                    ).debug()
+                    DjHTML(html.read(), extra_blocks={"weird_tag": "endweird"}).debug()
                 )

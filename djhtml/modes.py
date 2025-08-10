@@ -35,7 +35,7 @@ class BaseMode(ABC):
         self,
         source: str = "",
         return_mode: "BaseMode | None" = None,
-        extra_blocks: list[tuple[str, str]] | None = None,
+        extra_blocks: dict[str, str] | None = None,
     ) -> None:
         """
         Instantiate with source text before calling indent(), or
@@ -48,7 +48,7 @@ class BaseMode(ABC):
         self.source = source
         self.return_mode = return_mode or self
         self.token_re = compile_re(self.RAW_TOKENS)
-        self.extra_blocks = dict(extra_blocks or [])
+        self.extra_blocks = extra_blocks or {}
 
         # To keep track of the current and previous offsets.
         self.offsets = OffsetDict(relative=0, absolute=0)
@@ -439,7 +439,7 @@ class DjJS(DjTXT):
         self,
         source: str = "",
         return_mode: "BaseMode | None" = None,
-        extra_blocks: list[tuple[str, str]] | None = None,
+        extra_blocks: dict[str, str] | None = None,
     ) -> None:
         super().__init__(source, return_mode, extra_blocks)
         self.haskell = False
