@@ -23,6 +23,9 @@ class BaseMode(ABC):
     COMMENT_TAGS: ClassVar[Sequence[str]]
     MAX_LINE_LENGTH = 10_000
 
+    offsets: OffsetDict
+    previous_offsets: list[OffsetDict]
+
     @abstractmethod
     def create_token(
         self, raw_token: str, src: str, line: Line
@@ -48,8 +51,8 @@ class BaseMode(ABC):
         self.extra_blocks = dict(extra_blocks or [])
 
         # To keep track of the current and previous offsets.
-        self.offsets: OffsetDict = dict(relative=0, absolute=0)
-        self.previous_offsets: list[OffsetDict] = []
+        self.offsets = OffsetDict(relative=0, absolute=0)
+        self.previous_offsets = []
 
     def indent(self, tabwidth: int) -> str:
         """
@@ -322,7 +325,7 @@ class DjHTML(DjTXT):
                 following_spaces = match[2]
                 absolute = True
                 token: Token._Base = Token.Text(raw_token, mode=DjHTML)
-                offsets: OffsetDict = dict(
+                offsets = OffsetDict(
                     relative=-1 if line.indents else 0,
                     absolute=len(line) + len(tagname) + 2,
                 )
@@ -330,7 +333,7 @@ class DjHTML(DjTXT):
                     # Use "relative" multi-line indendation instead
                     absolute = False
                     token.indents = True
-                    offsets = dict(relative=0, absolute=0)
+                    offsets = OffsetDict(relative=0, absolute=0)
                 mode = InsideHTMLTag(tagname, line, self, absolute, offsets)
             else:
                 token = Token.Text(raw_token, mode=DjHTML)
@@ -378,7 +381,7 @@ class DjCSS(DjTXT):
 
         if raw_token in "{(":
             self.previous_offsets.append(self.offsets.copy())
-            self.offsets: OffsetDict = dict(relative=0, absolute=0)
+            self.offsets = OffsetDict(relative=0, absolute=0)
             token: Token._Base = Token.Open(raw_token, mode=DjCSS)
         elif raw_token in "})":
             if self.previous_offsets:
@@ -460,7 +463,7 @@ class DjJS(DjTXT):
         # Opening and closing tokens
         if raw_token in "{[(":
             self.previous_offsets.append(self.offsets.copy())
-            self.offsets = dict(relative=0, absolute=0)
+            self.offsets = OffsetDict(relative=0, absolute=0)
             token: Token._Base = Token.Open(raw_token, mode=DjJS)
         elif raw_token in ")]}":
             if self.previous_offsets:
