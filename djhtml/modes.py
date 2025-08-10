@@ -26,8 +26,7 @@ class BaseMode(ABC):
     @abstractmethod
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token._Base, "BaseMode"]:
-        ...
+    ) -> tuple[Token._Base, "BaseMode"]: ...
 
     def __init__(
         self,
@@ -255,10 +254,10 @@ class DjTXT(BaseMode):
             else:
                 token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
         elif raw_token == "{#":
-            token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
-                "{# fmt:on #}", mode=DjTXT, return_mode=self
-            ) if src.startswith(" fmt:off #}") else Comment(
-                "#}", mode=DjTXT, return_mode=self
+            token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), (
+                Comment("{# fmt:on #}", mode=DjTXT, return_mode=self)
+                if src.startswith(" fmt:off #}")
+                else Comment("#}", mode=DjTXT, return_mode=self)
             )
 
         else:
