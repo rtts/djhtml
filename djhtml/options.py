@@ -66,8 +66,6 @@ parser.add_argument(
     type=lambda x: tuple(x.split(",")),
 )
 
-# Parse arguments and assign attributes to self
-self = sys.modules[__name__]
 options = parser.parse_args()
 
 if options.show_version:
