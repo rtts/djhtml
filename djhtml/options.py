@@ -10,16 +10,6 @@ import argparse
 import sys
 from importlib.metadata import version
 
-tabwidth: int
-input_filenames: list[str]
-check: bool
-show_help: bool
-show_version: bool
-debug: bool
-in_place: bool
-extra_block: list[tuple[str, str]] | None
-
-
 parser = argparse.ArgumentParser(
     description=(
         """
@@ -78,15 +68,15 @@ parser.add_argument(
 
 # Parse arguments and assign attributes to self
 self = sys.modules[__name__]
-args = parser.parse_args(namespace=self)
+options = parser.parse_args()
 
-if show_version:
+if options.show_version:
     print(version("djhtml"))
     sys.exit()
-elif show_help or not input_filenames:
+elif options.show_help or not options.input_filenames:
     parser.print_help()
     sys.exit()
-elif in_place:
+elif options.in_place:
     sys.exit(
         """
 You have called DjHTML with the -i or --in-place argument which

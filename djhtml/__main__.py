@@ -21,7 +21,8 @@ import sys
 from collections.abc import Iterator
 from pathlib import Path
 
-from . import modes, options
+from . import modes
+from .options import options
 
 
 def main() -> None:
