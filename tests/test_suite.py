@@ -8,7 +8,7 @@ class TestSuite(unittest.TestCase):
     maxDiff = None
     DIR = Path(__file__).parent / "suite"
 
-    def test_available_files(self):
+    def test_available_files(self) -> None:
         """
         Loop over all the files in the suite directory and compare the
         expected output to the actual output.
@@ -19,7 +19,7 @@ class TestSuite(unittest.TestCase):
                 with self.subTest(filename):
                     self._test_file(filename.stem)
 
-    def _test_file(self, basename):
+    def _test_file(self, basename: str) -> None:
         with open(self.DIR / (basename + ".html")) as f:
             expected_output = f.read()
 
