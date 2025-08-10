@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from abc import ABC, abstractmethod
-from typing import Any, TypedDict
+from typing import Any, ClassVar, Sequence, TypedDict
 
 from .lines import Line
 from .tokens import Token
@@ -19,8 +19,8 @@ class BaseMode(ABC):
 
     """
 
-    RAW_TOKENS: list[str]
-    COMMENT_TAGS: list[str]
+    RAW_TOKENS: ClassVar[Sequence[str]]
+    COMMENT_TAGS: ClassVar[Sequence[str]]
     MAX_LINE_LENGTH = 10_000
 
     @abstractmethod
@@ -643,5 +643,5 @@ class MaxLineLengthExceeded(Exception):
     pass
 
 
-def compile_re(raw_tokens: list[str]) -> re.Pattern[str]:
+def compile_re(raw_tokens: Sequence[str]) -> re.Pattern[str]:
     return re.compile("(" + "|".join(raw_tokens) + ")")
