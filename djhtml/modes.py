@@ -29,7 +29,7 @@ class BaseMode(ABC):
     @abstractmethod
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token._Base, "BaseMode"]: ...
+    ) -> tuple[Token.BaseToken, "BaseMode"]: ...
 
     def __init__(
         self,
@@ -125,7 +125,7 @@ class BaseMode(ABC):
         thereby accomodates different languages used interchangeably.
 
         """
-        stack: list[Token._Base] = []
+        stack: list[Token.BaseToken] = []
 
         def mode_in_stack(mode: type[BaseMode]) -> bool:
             """
@@ -238,11 +238,11 @@ class DjTXT(BaseMode):
 
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token._Base, BaseMode]:
+    ) -> tuple[Token.BaseToken, BaseMode]:
         mode = self
 
         if tag := re.match(self.OPENING_TAG, raw_token):
-            token: Token._Base
+            token: Token.BaseToken
             name = tag.group(1)
             if name in self.COMMENT_TAGS:
                 token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
@@ -316,7 +316,7 @@ class DjHTML(DjTXT):
 
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token._Base, "BaseMode"]:
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
         mode: BaseMode = self
 
         if raw_token == "<":
@@ -324,7 +324,7 @@ class DjHTML(DjTXT):
                 tagname = match[1]
                 following_spaces = match[2]
                 absolute = True
-                token: Token._Base = Token.Text(raw_token, mode=DjHTML)
+                token: Token.BaseToken = Token.Text(raw_token, mode=DjHTML)
                 offsets = OffsetDict(
                     relative=-1 if line.indents else 0,
                     absolute=len(line) + len(tagname) + 2,
@@ -376,13 +376,13 @@ class DjCSS(DjTXT):
 
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token._Base, "BaseMode"]:
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
         mode: BaseMode = self
 
         if raw_token in "{(":
             self.previous_offsets.append(self.offsets.copy())
             self.offsets = OffsetDict(relative=0, absolute=0)
-            token: Token._Base = Token.Open(raw_token, mode=DjCSS)
+            token: Token.BaseToken = Token.Open(raw_token, mode=DjCSS)
         elif raw_token in "})":
             if self.previous_offsets:
                 self.offsets = self.previous_offsets.pop()
@@ -445,7 +445,7 @@ class DjJS(DjTXT):
 
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token._Base, "BaseMode"]:
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
         mode: BaseMode = self
         persist_relative_offset = False
 
@@ -464,7 +464,7 @@ class DjJS(DjTXT):
         if raw_token in "{[(":
             self.previous_offsets.append(self.offsets.copy())
             self.offsets = OffsetDict(relative=0, absolute=0)
-            token: Token._Base = Token.Open(raw_token, mode=DjJS)
+            token: Token.BaseToken = Token.Open(raw_token, mode=DjJS)
         elif raw_token in ")]}":
             if self.previous_offsets:
                 self.offsets = self.previous_offsets.pop()
@@ -557,7 +557,7 @@ class Comment(DjTXT):
 
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token._Base, "BaseMode"]:
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
         if re.match(self.endtag, raw_token):
             return Token.Close(raw_token, mode=self.mode, ignore=True), self.return_mode
         return Token.Text(raw_token, mode=Comment, ignore=True), self
@@ -590,7 +590,7 @@ class InsideHTMLTag(DjTXT):
 
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token._Base, "BaseMode"]:
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
         mode: BaseMode = self
 
         if not line:
@@ -602,7 +602,7 @@ class InsideHTMLTag(DjTXT):
 
         if raw_token in ['"', "'"]:
             if self.inside_attr:
-                token: Token._Base = Token.Text(
+                token: Token.BaseToken = Token.Text(
                     raw_token, mode=InsideHTMLTag, **self.offsets
                 )
                 if self.inside_attr == raw_token:

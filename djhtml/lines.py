@@ -14,7 +14,7 @@ class Line:
 
     def __init__(
         self,
-        tokens: list["Token._Base"] | None = None,
+        tokens: list["Token.BaseToken"] | None = None,
         level: int = 0,
         offset: int = 0,
         ignore: bool = False,
@@ -29,7 +29,7 @@ class Line:
         self.offset = offset
         self.ignore = ignore
 
-    def append(self, token: "Token._Base") -> None:
+    def append(self, token: "Token.BaseToken") -> None:
         """
         Append token to line.
 

@@ -10,7 +10,7 @@ class Token:
 
     """
 
-    class _Base:
+    class BaseToken:
         indents = False
         dedents = False
         ignore = False
@@ -48,23 +48,23 @@ class Token:
                     kwargs += f", {attr}={value!r}"
             return f"{self.__class__.__name__}({self.text!r}{kwargs})"
 
-    class Text(_Base):
+    class Text(BaseToken):
         pass
 
-    class Open(_Base):
+    class Open(BaseToken):
         indents = True
 
-    class OpenDouble(_Base):
+    class OpenDouble(BaseToken):
         indents = True
         is_double = True
 
-    class Close(_Base):
+    class Close(BaseToken):
         dedents = True
 
-    class CloseDouble(_Base):
+    class CloseDouble(BaseToken):
         dedents = True
         is_double = True
 
-    class CloseAndOpen(_Base):
+    class CloseAndOpen(BaseToken):
         indents = True
         dedents = True
