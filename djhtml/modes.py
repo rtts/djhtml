@@ -29,12 +29,12 @@ class BaseMode(ABC):
     @abstractmethod
     def create_token(
         self, raw_token: str, src: str, line: Line
-    ) -> tuple[Token.BaseToken, "BaseMode"]: ...
+    ) -> tuple[Token.BaseToken, BaseMode]: ...
 
     def __init__(
         self,
         source: str = "",
-        return_mode: "BaseMode | None" = None,
+        return_mode: BaseMode | None = None,
         extra_blocks: dict[str, str] | None = None,
     ) -> None:
         """
@@ -438,7 +438,7 @@ class DjJS(DjTXT):
     def __init__(
         self,
         source: str = "",
-        return_mode: "BaseMode | None" = None,
+        return_mode: BaseMode | None = None,
         extra_blocks: dict[str, str] | None = None,
     ) -> None:
         super().__init__(source, return_mode, extra_blocks)
