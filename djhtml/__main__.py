@@ -74,7 +74,7 @@ def main() -> None:
             guess = probabilities.index(max(probabilities))
 
         # Indent input file
-        extra_blocks = dict(options.extra_block or [])
+        extra_blocks = dict(options.extra_block or ())
         try:
             result = Mode(source, extra_blocks=extra_blocks).indent(
                 options.tabwidth or guess or 4
