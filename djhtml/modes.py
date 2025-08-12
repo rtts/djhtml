@@ -576,6 +576,8 @@ class InsideHTMLTag(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>", r"[^ ='\">/\n]+=", r'"', r"'"]
 
+    inside_attr: str | bool
+
     def __init__(
         self,
         tagname: str,
@@ -589,7 +591,7 @@ class InsideHTMLTag(DjTXT):
         self.absolute = absolute
         self.offsets = offsets
         self.token_re = compile_re(self.RAW_TOKENS)
-        self.inside_attr: str | bool = False
+        self.inside_attr = False
         self.additional_offset = -len(tagname) - 1 if absolute else 0
         self.extra_blocks = {}
 
