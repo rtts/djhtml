@@ -1,18 +1,42 @@
+from __future__ import annotations
+
 import re
+from abc import ABC, abstractmethod
+from typing import ClassVar, Sequence, TypedDict
 
 from .lines import Line
 from .tokens import Token
 
 
-class BaseMode:
+class OffsetDict(TypedDict):
+    relative: int
+    absolute: int
+
+
+class BaseMode(ABC):
     """
     Base class for the different modes.
 
     """
 
+    RAW_TOKENS: ClassVar[Sequence[str]]
+    COMMENT_TAGS: ClassVar[Sequence[str]]
     MAX_LINE_LENGTH = 10_000
 
-    def __init__(self, source=None, return_mode=None, extra_blocks=None):
+    offsets: OffsetDict
+    previous_offsets: list[OffsetDict]
+
+    @abstractmethod
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token.BaseToken, BaseMode]: ...
+
+    def __init__(
+        self,
+        source: str = "",
+        return_mode: BaseMode | None = None,
+        extra_blocks: dict[str, str] | None = None,
+    ) -> None:
         """
         Instantiate with source text before calling indent(), or
         with the return_mode when invoked from within another mode.
@@ -24,13 +48,13 @@ class BaseMode:
         self.source = source
         self.return_mode = return_mode or self
         self.token_re = compile_re(self.RAW_TOKENS)
-        self.extra_blocks = dict(extra_blocks or [])
+        self.extra_blocks = extra_blocks or {}
 
         # To keep track of the current and previous offsets.
-        self.offsets = dict(relative=0, absolute=0)
+        self.offsets = OffsetDict(relative=0, absolute=0)
         self.previous_offsets = []
 
-    def indent(self, tabwidth):
+    def indent(self, tabwidth: int) -> str:
         """
         Return the indented text as a single string.
 
@@ -39,7 +63,7 @@ class BaseMode:
         self.parse()
         return "\n".join([line.indent(tabwidth) for line in self.lines])
 
-    def tokenize(self):
+    def tokenize(self) -> None:
         """
         Split the source text into tokens and place them on lines.
 
@@ -91,7 +115,7 @@ class BaseMode:
             # Set the new source to the old tail for the next iteration.
             src = tail
 
-    def parse(self):
+    def parse(self) -> None:
         """
         You found the top-secret indenting algorithm!
 
@@ -101,9 +125,9 @@ class BaseMode:
         thereby accomodates different languages used interchangeably.
 
         """
-        stack = []
+        stack: list[Token.BaseToken] = []
 
-        def mode_in_stack(mode):
+        def mode_in_stack(mode: type[BaseMode]) -> bool:
             """
             Helper function to see if a token from a specific mode
             is in the stack.
@@ -172,7 +196,7 @@ class BaseMode:
                 if token.text.strip():
                     first_token = False
 
-    def debug(self):
+    def debug(self) -> str:
         self.tokenize()
         self.parse()
         return "\n".join([repr(line) for line in self.lines])
@@ -212,10 +236,13 @@ class DjTXT(BaseMode):
     }
     OPENING_TAG = r"{%[-+]? *[#/]?(\w+).*?[-+]?%}"
 
-    def create_token(self, raw_token, src, line):
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token.BaseToken, BaseMode]:
         mode = self
 
         if tag := re.match(self.OPENING_TAG, raw_token):
+            token: Token.BaseToken
             name = tag.group(1)
             if name in self.COMMENT_TAGS:
                 token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
@@ -230,10 +257,10 @@ class DjTXT(BaseMode):
             else:
                 token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
         elif raw_token == "{#":
-            token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), Comment(
-                "{# fmt:on #}", mode=DjTXT, return_mode=self
-            ) if src.startswith(" fmt:off #}") else Comment(
-                "#}", mode=DjTXT, return_mode=self
+            token, mode = Token.Open(raw_token, mode=DjTXT, ignore=True), (
+                Comment("{# fmt:on #}", mode=DjTXT, return_mode=self)
+                if src.startswith(" fmt:off #}")
+                else Comment("#}", mode=DjTXT, return_mode=self)
             )
 
         else:
@@ -241,15 +268,15 @@ class DjTXT(BaseMode):
 
         return token, mode
 
-    def _has_closing_token(self, name, raw_token, src):
+    def _has_closing_token(self, name: str, raw_token: str, src: str) -> bool:
         endtag = self.extra_blocks.get(name)
         if endtag:
-            return re.search(f"{{%[-+]? *{endtag}(?: .*?|)%}}", src)
+            return bool(re.search(f"{{%[-+]? *{endtag}(?: .*?|)%}}", src))
         if not re.search(f"{{%[-+]? *(end_?|/){name}(?: .*?|)%}}", src):
             return False
         if regex := self.AMBIGUOUS_BLOCK_TAGS.get(name):
             if regex[0]:
-                return re.search(regex[0], raw_token)
+                return bool(re.search(regex[0], raw_token))
             if regex[1]:
                 return not re.search(regex[1], raw_token)
         return True
@@ -287,16 +314,18 @@ class DjHTML(DjTXT):
         "wbr",
     ]
 
-    def create_token(self, raw_token, src, line):
-        mode = self
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
+        mode: BaseMode = self
 
         if raw_token == "<":
             if match := re.match(r"([\w\-\.:]+)(\s*)", src):
                 tagname = match[1]
                 following_spaces = match[2]
                 absolute = True
-                token = Token.Text(raw_token, mode=DjHTML)
-                offsets = dict(
+                token: Token.BaseToken = Token.Text(raw_token, mode=DjHTML)
+                offsets = OffsetDict(
                     relative=-1 if line.indents else 0,
                     absolute=len(line) + len(tagname) + 2,
                 )
@@ -304,7 +333,7 @@ class DjHTML(DjTXT):
                     # Use "relative" multi-line indendation instead
                     absolute = False
                     token.indents = True
-                    offsets = dict(relative=0, absolute=0)
+                    offsets = OffsetDict(relative=0, absolute=0)
                 mode = InsideHTMLTag(tagname, line, self, absolute, offsets)
             else:
                 token = Token.Text(raw_token, mode=DjHTML)
@@ -345,13 +374,15 @@ class DjCSS(DjTXT):
         r"</style>",
     ]
 
-    def create_token(self, raw_token, src, line):
-        mode = self
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
+        mode: BaseMode = self
 
         if raw_token in "{(":
             self.previous_offsets.append(self.offsets.copy())
-            self.offsets = dict(relative=0, absolute=0)
-            token = Token.Open(raw_token, mode=DjCSS)
+            self.offsets = OffsetDict(relative=0, absolute=0)
+            token: Token.BaseToken = Token.Open(raw_token, mode=DjCSS)
         elif raw_token in "})":
             if self.previous_offsets:
                 self.offsets = self.previous_offsets.pop()
@@ -404,16 +435,23 @@ class DjJS(DjTXT):
         r"</script>",
     ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        source: str = "",
+        return_mode: BaseMode | None = None,
+        extra_blocks: dict[str, str] | None = None,
+    ) -> None:
+        super().__init__(source, return_mode, extra_blocks)
         self.haskell = False
         self.haskell_re = re.compile(r"^ *, ([$\w-]+ *=|[$\w-]+;?)")
         self.variable_re = re.compile(r"^ *([$\w-]+ *=|[$\w-]+;?)")
         self.previous_line_ended_with_comma = False
         self.extra_blocks = {}
 
-    def create_token(self, raw_token, src, line):
-        mode = self
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
+        mode: BaseMode = self
         persist_relative_offset = False
 
         # Reset absolute offset in almost all cases
@@ -430,8 +468,8 @@ class DjJS(DjTXT):
         # Opening and closing tokens
         if raw_token in "{[(":
             self.previous_offsets.append(self.offsets.copy())
-            self.offsets = dict(relative=0, absolute=0)
-            token = Token.Open(raw_token, mode=DjJS)
+            self.offsets = OffsetDict(relative=0, absolute=0)
+            token: Token.BaseToken = Token.Open(raw_token, mode=DjJS)
         elif raw_token in ")]}":
             if self.previous_offsets:
                 self.offsets = self.previous_offsets.pop()
@@ -513,14 +551,18 @@ class Comment(DjTXT):
 
     """
 
-    def __init__(self, endtag, *, mode, return_mode):
+    def __init__(
+        self, endtag: str, *, mode: type[BaseMode], return_mode: BaseMode
+    ) -> None:
         self.endtag = endtag
         self.mode = mode
         self.return_mode = return_mode
         self.token_re = compile_re([r"\n", endtag])
         self.extra_blocks = {}
 
-    def create_token(self, raw_token, src, line):
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
         if re.match(self.endtag, raw_token):
             return Token.Close(raw_token, mode=self.mode, ignore=True), self.return_mode
         return Token.Text(raw_token, mode=Comment, ignore=True), self
@@ -534,7 +576,16 @@ class InsideHTMLTag(DjTXT):
 
     RAW_TOKENS = DjTXT.RAW_TOKENS + [r"/?>", r"[^ ='\">/\n]+=", r'"', r"'"]
 
-    def __init__(self, tagname, line, return_mode, absolute, offsets):
+    inside_attr: str | bool
+
+    def __init__(
+        self,
+        tagname: str,
+        line: Line,
+        return_mode: BaseMode,
+        absolute: int,
+        offsets: OffsetDict,
+    ) -> None:
         self.tagname = tagname
         self.return_mode = return_mode
         self.absolute = absolute
@@ -544,8 +595,10 @@ class InsideHTMLTag(DjTXT):
         self.additional_offset = -len(tagname) - 1 if absolute else 0
         self.extra_blocks = {}
 
-    def create_token(self, raw_token, src, line):
-        mode = self
+    def create_token(
+        self, raw_token: str, src: str, line: Line
+    ) -> tuple[Token.BaseToken, "BaseMode"]:
+        mode: BaseMode = self
 
         if not line:
             self.additional_offset = 0
@@ -556,14 +609,16 @@ class InsideHTMLTag(DjTXT):
 
         if raw_token in ['"', "'"]:
             if self.inside_attr:
-                token = Token.Text(raw_token, mode=InsideHTMLTag, **self.offsets)
+                token: Token.BaseToken = Token.Text(
+                    raw_token, mode=InsideHTMLTag, **self.offsets
+                )
                 if self.inside_attr == raw_token:
                     self.inside_attr = False
                     token.absolute = self.offsets["absolute"] - 1
                     self.offsets["absolute"] = self.previous_offset
             else:
                 self.inside_attr = raw_token
-                self.previous_offset = self.offsets["absolute"]
+                self.previous_offset: int = self.offsets["absolute"]
                 self.offsets["absolute"] += self.additional_offset
                 token = Token.Text(raw_token, mode=InsideHTMLTag, **self.offsets)
         elif not self.inside_attr and raw_token == "/>":
@@ -598,5 +653,5 @@ class MaxLineLengthExceeded(Exception):
     pass
 
 
-def compile_re(raw_tokens):
+def compile_re(raw_tokens: Sequence[str]) -> re.Pattern[str]:
     return re.compile("(" + "|".join(raw_tokens) + ")")

@@ -1,18 +1,31 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .modes import BaseMode
+
+
 class Token:
     """
     Container class for token types.
 
     """
 
-    class _Base:
+    class BaseToken:
         indents = False
         dedents = False
         ignore = False
         is_double = False
 
         def __init__(
-            self, text, *, mode, level=0, relative=0, absolute=0, ignore=False
-        ):
+            self,
+            text: str,
+            *,
+            mode: type["BaseMode"],
+            level: int = 0,
+            relative: int = 0,
+            absolute: int = 0,
+            ignore: bool = False,
+        ) -> None:
             """
             Tokens must have a text and a mode class. The level
             represents the line level of opening tokens and is set
@@ -28,30 +41,30 @@ class Token:
             self.absolute = absolute
             self.ignore = ignore
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             kwargs = f", mode={self.mode.__name__}"
             for attr in ["level", "relative", "absolute", "ignore"]:
                 if value := getattr(self, attr):
                     kwargs += f", {attr}={value!r}"
             return f"{self.__class__.__name__}({self.text!r}{kwargs})"
 
-    class Text(_Base):
+    class Text(BaseToken):
         pass
 
-    class Open(_Base):
+    class Open(BaseToken):
         indents = True
 
-    class OpenDouble(_Base):
+    class OpenDouble(BaseToken):
         indents = True
         is_double = True
 
-    class Close(_Base):
+    class Close(BaseToken):
         dedents = True
 
-    class CloseDouble(_Base):
+    class CloseDouble(BaseToken):
         dedents = True
         is_double = True
 
-    class CloseAndOpen(_Base):
+    class CloseAndOpen(BaseToken):
         indents = True
         dedents = True
