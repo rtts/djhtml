@@ -36,6 +36,7 @@ class BaseMode(ABC):
         source: str = "",
         return_mode: BaseMode | None = None,
         extra_blocks: dict[str, str] | None = None,
+        extra_middle_tags: list[str] | None = None,
     ) -> None:
         """
         Instantiate with source text before calling indent(), or
@@ -49,6 +50,7 @@ class BaseMode(ABC):
         self.return_mode = return_mode or self
         self.token_re = compile_re(self.RAW_TOKENS)
         self.extra_blocks = extra_blocks or {}
+        self.extra_middle_tags = extra_middle_tags or []
 
         # To keep track of the current and previous offsets.
         self.offsets = OffsetDict(relative=0, absolute=0)
@@ -252,7 +254,7 @@ class DjTXT(BaseMode):
                 token = Token.Close(raw_token, mode=DjTXT, **self.offsets)
             elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, mode=DjTXT, **self.offsets)
-            elif name in self.CLOSING_AND_OPENING_TAGS:
+            elif name in self.CLOSING_AND_OPENING_TAGS or name in self.extra_middle_tags:
                 token = Token.CloseAndOpen(raw_token, mode=DjTXT, **self.offsets)
             else:
                 token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
@@ -440,13 +442,15 @@ class DjJS(DjTXT):
         source: str = "",
         return_mode: BaseMode | None = None,
         extra_blocks: dict[str, str] | None = None,
+        extra_middle_tags: list[str] | None = None,
     ) -> None:
-        super().__init__(source, return_mode, extra_blocks)
+        super().__init__(source, return_mode, extra_blocks, extra_middle_tags)
         self.haskell = False
         self.haskell_re = re.compile(r"^ *, ([$\w-]+ *=|[$\w-]+;?)")
         self.variable_re = re.compile(r"^ *([$\w-]+ *=|[$\w-]+;?)")
         self.previous_line_ended_with_comma = False
         self.extra_blocks = {}
+        self.extra_middle_tags = []
 
     def create_token(
         self, raw_token: str, src: str, line: Line
@@ -559,6 +563,7 @@ class Comment(DjTXT):
         self.return_mode = return_mode
         self.token_re = compile_re([r"\n", endtag])
         self.extra_blocks = {}
+        self.extra_middle_tags = []
 
     def create_token(
         self, raw_token: str, src: str, line: Line
@@ -594,6 +599,7 @@ class InsideHTMLTag(DjTXT):
         self.inside_attr = False
         self.additional_offset = -len(tagname) - 1 if absolute else 0
         self.extra_blocks = {}
+        self.extra_middle_tags = []
 
     def create_token(
         self, raw_token: str, src: str, line: Line

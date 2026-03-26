@@ -62,7 +62,7 @@ parser.add_argument(
     "-b",
     "--extra-block",
     action="append",
-    help="startblock,endblock pair",
+    help="startblock,endblock[,middletag,...] tuple",
     type=lambda x: tuple(x.split(",")),
 )
 

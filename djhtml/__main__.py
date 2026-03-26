@@ -48,6 +48,13 @@ def main() -> None:
     if len(options.input_filenames) > 1 and "-" in options.input_filenames:
         sys.exit("I’m sorry Dave, I’m afraid I can’t do that.")
 
+    extra_blocks = {}
+    extra_middle_tags = []
+    for block_tuple in options.extra_block or ():
+        if len(block_tuple) >= 2:
+            extra_blocks[block_tuple[0]] = block_tuple[1]
+            extra_middle_tags.extend(block_tuple[2:])
+
     for filename in _generate_filenames(options.input_filenames, suffixes):
         # Read input file
         try:
@@ -74,9 +81,12 @@ def main() -> None:
             guess = probabilities.index(max(probabilities))
 
         # Indent input file
-        extra_blocks = dict(options.extra_block or ())
         try:
-            result = Mode(source, extra_blocks=extra_blocks).indent(
+            result = Mode(
+                source,
+                extra_blocks=extra_blocks,
+                extra_middle_tags=extra_middle_tags,
+            ).indent(
                 options.tabwidth or guess or 4
             )
         except modes.MaxLineLengthExceeded:
