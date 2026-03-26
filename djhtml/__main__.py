@@ -52,8 +52,8 @@ def main() -> None:
     extra_middle_tags = []
     for block_tuple in options.extra_block or ():
         if len(block_tuple) >= 2:
-            extra_blocks[block_tuple[0]] = block_tuple[1]
-            extra_middle_tags.extend(block_tuple[2:])
+            extra_blocks[block_tuple[0]] = block_tuple[-1]
+            extra_middle_tags.extend(block_tuple[1:-1])
 
     for filename in _generate_filenames(options.input_filenames, suffixes):
         # Read input file
