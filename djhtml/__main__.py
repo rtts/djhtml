@@ -86,9 +86,7 @@ def main() -> None:
                 source,
                 extra_blocks=extra_blocks,
                 extra_middle_tags=extra_middle_tags,
-            ).indent(
-                options.tabwidth or guess or 4
-            )
+            ).indent(options.tabwidth or guess or 4)
         except modes.MaxLineLengthExceeded:
             problematic_files += 1
             _error(f"Maximum line length exceeded in {filename}")

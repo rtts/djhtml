@@ -254,7 +254,9 @@ class DjTXT(BaseMode):
                 token = Token.Close(raw_token, mode=DjTXT, **self.offsets)
             elif self._has_closing_token(name, raw_token, src):
                 token = Token.Open(raw_token, mode=DjTXT, **self.offsets)
-            elif name in self.CLOSING_AND_OPENING_TAGS or name in self.extra_middle_tags:
+            elif (
+                name in self.CLOSING_AND_OPENING_TAGS or name in self.extra_middle_tags
+            ):
                 token = Token.CloseAndOpen(raw_token, mode=DjTXT, **self.offsets)
             else:
                 token = Token.Text(raw_token, mode=DjTXT, **self.offsets)
