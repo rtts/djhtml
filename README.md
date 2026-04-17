@@ -27,6 +27,9 @@ whitespace at the beginning of lines. It will not insert newlines or
 other characters. The goal is to correctly indent already
 well-structured templates, not to fix broken ones.
 
+If you are looking for an actual template _formatter_, check out the
+[djangofmt](https://github.com/UnknownPlatypus/djangofmt) project.
+
 
 ## Installation
 
